@@ -4,5 +4,6 @@ Diplomingeniør afgangsprojekt for Aqqalu Josefsen, Aalborg Universitet
 Projektet oprettet 12/09/2016
 
 Projektleder: Aqqalu Josefsen
+Projektmedlemmer: Klaus Wogelius, Bjørn Sigurdsson, Ole Peter Kristensen
 
 
