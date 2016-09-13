@@ -116,7 +116,28 @@ no changes added to commit (use "git add" and/or "git commit -a")
 
 kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (git-howto)
 $
+\end{verbatim}
+I nærværende kan man se at der er genereret ("modified") nogle filer i branch-folderen, fordi jeg kompilerede "git-howto.tex". Disse ændrede filer skal nu tilføjes til listen over filer, der skal medtages i snapshot'et:
+\begin{verbatim}
+$ git add git-how*
+The following paths are ignored by one of your .gitignore files:
+git-howto.log
+Use -f if you really want to add them.
 
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (git-howto)
+$ git status
+On branch git-howto
+Changes to be committed:
+(use "git reset HEAD <file>..." to unstage)
+
+modified:   git-howto.aux
+modified:   git-howto.pdf
+modified:   git-howto.synctex.gz
+modified:   git-howto.tex
+modified:   git-howto.toc
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile(git-howto)
+$
 \end{verbatim}
 
 \end{document}
