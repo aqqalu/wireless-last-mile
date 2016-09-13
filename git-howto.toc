@@ -1,0 +1,4 @@
+\select@language {danish}
+\contentsline {chapter}{\numberline {1}GIT og GitHub}{3}
+\contentsline {section}{\numberline {1.1}Hent en arbejdskopi af repositoriet i GitHub}{3}
+\contentsline {section}{\numberline {1.2}Lav en opgave i arbejdskopien (Lav en "branch")}{4}
