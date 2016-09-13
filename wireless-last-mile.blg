@@ -1,0 +1,9 @@
+[0] Config.pm:343> INFO - This is Biber 2.5
+[0] Config.pm:346> INFO - Logfile is 'wireless-last-mile.blg'
+[38] biber-MSWIN64:290> INFO - === 
+[69] Biber.pm:351> INFO - Reading 'wireless-last-mile.bcf'
+[155] Biber.pm:773> INFO - Using all citekeys in bib section 0
+[171] Biber.pm:3493> INFO - Processing section 0
+[198] Biber.pm:3657> INFO - Looking for bibtex format file 'mini.bib' for section 0
+[350] Utils.pm:165> ERROR - Cannot find 'mini.bib'!
+[350] Biber.pm:112> INFO - ERRORS: 1
