@@ -8,8 +8,8 @@
 \usepackage[section]{placeins} %tabeller og figurer flyder kun indenfor egen sektion
 \usepackage{graphicx} % .png, .jpg etc kan embeddes i dokumentet
 \usepackage[a4paper, bmargin=2cm]{geometry}
-\usepackage{float} %Placer floats præcist med specifier'en "H"
-\usepackage{caption} %kontroller "caption" bedre
+\usepackage{float} %Placer floats præcist med specifier'en ''H''
+\usepackage{caption} %kontroller ''caption'' bedre
 \usepackage{subcaption} %lav captions i subfloats
 \usepackage{paralist} %gør lister mere fleksible
 \usepackage{multirow} %slå flere rækker i en tabel sammen til én
@@ -19,7 +19,7 @@
 \setcounter{secnumdepth}{4} %nummerer helt ned til subsubsection
 \setcounter{tocdepth}{4} %indholdsfortegnelse helt ned til subsubsection
 
-\newcommand{\bs}{\textbackslash} % skriv "\" uden at få skrivekrampe
+\newcommand{\bs}{\textbackslash} % skriv ''\'' uden at få skrivekrampe
 
 \title{Sags-index}
 \author{Klaus Wogelius}
@@ -37,14 +37,14 @@ Git er et versionsstyringsværktøj.
  \item I Windoze explorer (stifinder):
  \begin{enumerate}
   \item Gå derhen, hvor du vil have din arbejdskopi liggende
-  \item flyt pilen op til adressefeltet, højreklik og vælg "kopier adresse"
+  \item flyt pilen op til adressefeltet, højreklik og vælg ''kopier adresse''
  \end{enumerate}
- \item Start "Git Bash"
+ \item Start ''Git Bash''
  \item I Git Bash:
  \begin{enumerate}
-  \item Skriv kommandoen "cd <paste den kopierede adresse>"
-  \item skriv "Git clone https://github.com/aqqalu/wireless-last-mile <enter>"
-  \item Gå ind i Arbejdsfolderen ("cd wireless-last-mile")
+  \item Skriv kommandoen ''cd $<$paste den kopierede adresse$>$''
+  \item skriv ''Git clone https://github.com/aqqalu/wireless-last-mile $<$enter$>$''
+  \item Gå ind i Arbejdsfolderen (''cd wireless-last-mile'')
  \end{enumerate}
 \end{enumerate}
 Herunder er et eksempel på proceduren:
@@ -67,7 +67,7 @@ kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (master)
 $
 \end{verbatim}
 \par
-Når  du har lavet en "clone"-kommando har Git automatisk gemt, hvorfra arbejdskopien kom. Du kan se dette med kommandoen "remote -v":
+Når  du har lavet en ''clone''-kommando har Git automatisk gemt, hvorfra arbejdskopien kom. Du kan se dette med kommandoen ''remote -v'':
 \begin{verbatim}
 $ git remote -v
 origin  https://github.com/aqqalu/wireless-last-mile (fetch)
@@ -76,24 +76,47 @@ origin  https://github.com/aqqalu/wireless-last-mile (push)
 kw@bar14825 MINGW64 /c/Users/kw/Documents/sager/igangværende/wireless-last-mile (master)
 $ 
 \end{verbatim}
-\section{Lav en opgave i arbejdskopien (Lav en "branch")}
-Når der skal laves en opgave i projektet, starter du med at lave en "branch" fra arbejdskopien med kommandoen "git branch <opgavenavn>".
+
+\section{Lav en opgave i arbejdskopien (Lav en ''branch'')}
+Når der skal laves en opgave i projektet, starter du med at lave en ''branch'' fra arbejdskopien med kommandoen ''git branch $<$opgavenavn$>$''.
 \par
-Når jeg eksempelvis laver denne "Git-HowTo"-vejledning til vores projekt starter jeg med at lave en branch, som jeg vælger at kalde "git-howto":
+Når jeg eksempelvis laver denne ''Git-HowTo''-vejledning til vores projekt starter jeg med at lave en branch, som jeg vælger at kalde ''git-howto'':
 \begin{verbatim}
 $ git branch git-howto
 
-kw@bar14825 MINGW64 /c/Users/kw/Documents/sager/igangværende/wireless-last-mile (master)
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (master)
 \end{verbatim}
 
-Derefter skiftes over til at arbejde i branch'en med opgaven ved hjælp af kommandoen "git checkout <opgavenavn>":
+Derefter skiftes over til at arbejde i branch'en med opgaven ved hjælp af kommandoen ''git checkout $<$opgavenavn$>$'':
 \begin{verbatim}
 $ git checkout git-howto
 Switched to branch 'git-howto'
 
-kw@bar14825 MINGW64 /c/Users/kw/Documents/sager/igangværende/wireless-last-mile (git-howto)
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (git-howto)
 $
 \end{verbatim}
+I denne branch kan så opgaven laves. Til eksempel har jeg kompileret \LaTeX-dokumentet "git-howto.tex" med programmet "Tex-studio", efter at jeg i Git Bash havde lavet en checkout til branch'en "git-howto".
 
+\section{Lav et snapshot af dit færdige arbejde}
+Når du mener din opgave er færdig, eller hvis du ønsker at lave en sikkerhedskopi af opgaven gemmer du et snapshot af opgaven. Først ser du lige status med kommandoen "git status":
+\begin{verbatim}
+$ git status
+On branch git-howto
+Changes not staged for commit:
+(use "git add <file>..." to update what will be committed)
+(use "git checkout -- <file>..." to discard changes in working directory)
+
+modified:   git-howto.aux
+modified:   git-howto.pdf
+modified:   git-howto.synctex.gz
+modified:   git-howto.tex
+modified:   git-howto.toc
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (git-howto)
+$
+
+\end{verbatim}
 
 \end{document}
