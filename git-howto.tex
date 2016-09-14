@@ -1,0 +1,160 @@
+% !TeX spellcheck = da_DK
+\documentclass[11pt,a4paper,twoside]{report}
+\usepackage[danish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{makeidx}
+
+\usepackage{amssymb, amsmath, amsfonts}
+\usepackage[section]{placeins} %tabeller og figurer flyder kun indenfor egen sektion
+\usepackage{graphicx} % .png, .jpg etc kan embeddes i dokumentet
+\usepackage[a4paper, bmargin=2cm]{geometry}
+\usepackage{float} %Placer floats præcist med specifier'en ''H''
+\usepackage{caption} %kontroller ''caption'' bedre
+\usepackage{subcaption} %lav captions i subfloats
+\usepackage{paralist} %gør lister mere fleksible
+\usepackage{multirow} %slå flere rækker i en tabel sammen til én
+\usepackage{collect} %Indhent tekst til senere brug
+\usepackage{placeins} %hold floats indenfor barrierer
+\usepackage{import} %erstatter \include{} og \input{} af subfolders
+\setcounter{secnumdepth}{4} %nummerer helt ned til subsubsection
+\setcounter{tocdepth}{4} %indholdsfortegnelse helt ned til subsubsection
+
+\newcommand{\bs}{\textbackslash} % skriv ''\'' uden at få skrivekrampe
+
+\title{Git how-to}
+\author{Klaus Wogelius}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\chapter{GIT og GitHub}
+Git er et versionsstyringsværktøj.
+\section{Hent en arbejdskopi af repositoriet i GitHub}
+\begin{enumerate}
+
+ \item I Windoze explorer (stifinder):
+ \begin{enumerate}
+  \item Gå derhen, hvor du vil have din arbejdskopi liggende
+  \item flyt pilen op til adressefeltet, højreklik og vælg ''kopier adresse''
+ \end{enumerate}
+ \item Start ''Git Bash''
+ \item I Git Bash:
+ \begin{enumerate}
+  \item Skriv kommandoen ''cd $<$paste den kopierede adresse$>$''
+  \item skriv ''Git clone https://github.com/aqqalu/wireless-last-mile $<$enter$>$''
+  \item Gå ind i Arbejdsfolderen (''cd wireless-last-mile'')
+ \end{enumerate}
+\end{enumerate}
+Herunder er et eksempel på proceduren:
+\begin{verbatim}
+kw@bar14825 MINGW64 /c/Users/kw/Desktop
+$ cd /c/Users/kw/Documents
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents
+$ git clone https://github.com/aqqalu/wireless-last-mile
+Cloning into 'wireless-last-mile'...
+remote: Counting objects: 18, done.
+remote: Compressing objects: 100% (10/10), done.
+remote: Total 18 (delta 2), reused 18 (delta 2), pack-reused 0
+Unpacking objects: 100% (18/18), done.
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents
+$ cd wireless-last-mile/
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (master)
+$
+\end{verbatim}
+\par
+Når  du har lavet en ''clone''-kommando har Git automatisk gemt, hvorfra arbejdskopien kom. Du kan se dette med kommandoen ''remote -v'':
+\begin{verbatim}
+$ git remote -v
+origin  https://github.com/aqqalu/wireless-last-mile (fetch)
+origin  https://github.com/aqqalu/wireless-last-mile (push)
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (master)
+$ 
+\end{verbatim}
+
+\section{Lav en opgave i arbejdskopien (Lav en ''branch'')}
+Når der skal laves en opgave i projektet, starter du med at lave en ''branch'' fra arbejdskopien med kommandoen ''git branch $<$opgavenavn$>$''.
+\par
+Når jeg eksempelvis laver denne ''Git-HowTo''-vejledning til vores projekt starter jeg med at lave en branch, som jeg vælger at kalde ''git-howto'':
+\begin{verbatim}
+$ git branch git-howto
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (master)
+\end{verbatim}
+
+Derefter skiftes over til at arbejde i branch'en med opgaven ved hjælp af kommandoen ''git checkout $<$opgavenavn$>$'':
+\begin{verbatim}
+$ git checkout git-howto
+Switched to branch 'git-howto'
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (git-howto)
+$
+\end{verbatim}
+I denne branch kan så opgaven laves. Til eksempel har jeg kompileret \LaTeX-dokumentet "git-howto.tex" med programmet "Tex-studio", efter at jeg i Git Bash havde lavet en checkout til branch'en "git-howto".
+
+\section{Lav et snapshot af dit færdige arbejde}
+Når du mener din opgave er færdig, eller hvis du ønsker at lave en sikkerhedskopi af opgaven gemmer du et snapshot af opgaven. Først ser du lige status med kommandoen "git status":
+\begin{verbatim}
+$ git status
+On branch git-howto
+Changes not staged for commit:
+(use "git add <file>..." to update what will be committed)
+(use "git checkout -- <file>..." to discard changes in working directory)
+
+modified:   git-howto.aux
+modified:   git-howto.pdf
+modified:   git-howto.synctex.gz
+modified:   git-howto.tex
+modified:   git-howto.toc
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (git-howto)
+$
+\end{verbatim}
+I nærværende kan man se at der er genereret ("modified") nogle filer i branch-folderen, fordi jeg kompilerede "git-howto.tex". Disse ændrede filer skal nu tilføjes til listen over filer, der skal medtages i snapshot'et:
+\begin{verbatim}
+$ git add git-how*
+The following paths are ignored by one of your .gitignore files:
+git-howto.log
+Use -f if you really want to add them.
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (git-howto)
+$ git status
+On branch git-howto
+Changes to be committed:
+(use "git reset HEAD <file>..." to unstage)
+
+modified:   git-howto.aux
+modified:   git-howto.pdf
+modified:   git-howto.synctex.gz
+modified:   git-howto.tex
+modified:   git-howto.toc
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile(git-howto)
+$
+\end{verbatim}
+Slutteligt forpligter jeg mig til ændringerne med kommandoen ''git commit -m $<$forklarende tekst..$>$'' (en forklaring er obligatorisk):
+\begin{verbatim}
+$ git commit -m"git-howto dokument oprettet"
+[git-howto 9830ac3] git-howto dokument oprettet
+5 files changed, 42 insertions(+), 17 deletions(-)
+rewrite git-howto.synctex.gz (100%)
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (git-howto)
+$ git status
+On branch git-howto
+nothing to commit, working tree clean
+
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (git-howto)
+$
+\end{verbatim}
+Sådan. Snapshot'et er lavet og gemt for evigt :-)
+
+
+\end{document}
