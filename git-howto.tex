@@ -31,7 +31,11 @@
 
 \chapter{GIT og GitHub}
 Git er et versionsstyringsværktøj.
+<<<<<<< HEAD
 \section{Hent en arbejdskopi af et projekt i GitHub} \label{clone}
+=======
+\section{Hent en arbejdskopi af repositoriet i GitHub}
+>>>>>>> 73c3249d31a91e4c3254c8866158805a19b4979c
 \begin{enumerate}
 
  \item I Windoze explorer (stifinder):
@@ -73,11 +77,11 @@ $ git remote -v
 origin  https://github.com/aqqalu/wireless-last-mile (fetch)
 origin  https://github.com/aqqalu/wireless-last-mile (push)
 
-kw@bar14825 MINGW64 /c/Users/kw/Documents/sager/igangværende/wireless-last-mile (master)
+kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (master)
 $ 
 \end{verbatim}
 
-\section{Lav en opgave i arbejdskopien (Lav en ''branch'')} \label{branch}
+\section{Lav en opgave i arbejdskopien (Lav en ''branch'')}
 Når der skal laves en opgave i projektet, starter du med at lave en ''branch'' fra arbejdskopien med kommandoen ''git branch $<$opgavenavn$>$''.
 \par
 Når jeg eksempelvis laver denne ''Git-HowTo''-vejledning til vores projekt starter jeg med at lave en branch, som jeg vælger at kalde ''git-howto'':
@@ -141,6 +145,7 @@ $
 \end{verbatim}
 
 Slutteligt tager jeg ansvar for ændringerne med kommandoen ''git commit -m $<$forklarende tekst..$>$'' (en forklaring er obligatorisk):
+
 \begin{verbatim}
 $ git commit -m"git-howto dokument oprettet"
 [git-howto 9830ac3] git-howto dokument oprettet
@@ -156,7 +161,6 @@ kw@bar14825 MINGW64 /c/Users/kw/Documents/wireless-last-mile (git-howto)
 $
 \end{verbatim}
 Sådan. Snapshot'et er lavet og gemt for evigt :-)
-
 
 \section{Skaf overblik over hvilke branches der er i projektet}
 For at se, hvilke branched, der i øjeblikket er i projektet eller arbejdskopien kan anvendes kommandoen \emph{''git branch''} uden parametre. Herunder ses resultatet af en sådan kommando. Det ses, at der i øjeblikket er 3 branches, ''master'', ''git-howto'' og ''interessentanalyse''. Stjernen ud for ''git-howto'' fortæller at jeg i øjeblikket er check'et ind i branch ''git-howto'':

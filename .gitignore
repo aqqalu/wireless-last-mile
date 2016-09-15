@@ -1,0 +1,9 @@
+# Latex temp filer
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.log
+*.run.xml
+*.toc
+*.synctex.gz
