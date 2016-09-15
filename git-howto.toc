@@ -1,10 +1,9 @@
 \select@language {danish}
 \contentsline {chapter}{\numberline {1}GIT og GitHub}{3}
 \contentsline {section}{\numberline {1.1}Hent en arbejdskopi af et projekt i GitHub}{3}
-\contentsline {section}{\numberline {1.2}Hent en arbejdskopi af repositoriet i GitHub}{3}
-\contentsline {section}{\numberline {1.3}Lav en opgave i arbejdskopien (Lav en ''branch'')}{4}
-\contentsline {section}{\numberline {1.4}Lav et snapshot af dit f\IeC {\ae }rdige arbejde}{4}
-\contentsline {section}{\numberline {1.5}Skaf overblik over hvilke branches der er i projektet}{6}
-\contentsline {section}{\numberline {1.6}Skaf overblik over hvilke afgreninger der er i projektet}{6}
-\contentsline {section}{\numberline {1.7}sammenkobl to grene}{6}
-\contentsline {section}{\numberline {1.8}}{6}
+\contentsline {section}{\numberline {1.2}Lav en opgave i arbejdskopien (Lav en ''branch'')}{4}
+\contentsline {section}{\numberline {1.3}Lav et snapshot af dit f\IeC {\ae }rdige arbejde}{4}
+\contentsline {section}{\numberline {1.4}Skaf overblik over hvilke branches der er i projektet}{5}
+\contentsline {section}{\numberline {1.5}Skaf overblik over hvilke afgreninger der er i projektet}{6}
+\contentsline {section}{\numberline {1.6}sammenkobl to grene}{6}
+\contentsline {section}{\numberline {1.7}}{6}
