@@ -6,12 +6,12 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {1.1}Projektets m\IeC {\r a}ls\IeC {\ae }tning}{2}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {1.1.1}Form\IeC {\r a}lsbeskrivelsen}{2}
+\contentsline {subsection}{\numberline {1.1.1}Form\IeC {\r a}lsbeskrivelsen}{3}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {1.1.2}Projektets leverancer}{2}
+\contentsline {subsection}{\numberline {1.1.2}Projektets leverancer}{3}
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {1.1.3}Projektets succeskriterier}{3}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {1.2}Interessentanalyse for projektet}{3}
+\contentsline {section}{\numberline {1.2}Interessentanalyse for projektet}{4}
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {1.2.1}Liste over interessenter}{4}
