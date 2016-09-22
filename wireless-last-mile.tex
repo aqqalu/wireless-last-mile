@@ -3,15 +3,18 @@
 \usepackage[utf8]{inputenc}
 \usepackage{csquotes}
 \usepackage[backend=biber, sortlocale=da_DK, sortcites]{biblatex}
-\bibliography{mini.bib}
+\bibliography{kilder.bib}
 
 \usepackage{appendix} %lav appendices
 \usepackage{amsmath} % lav matematik
+\usepackage{pdfpages}
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage[normalem]{ulem} %streg tekst ud med kommandoen \sout{text}
 \usepackage{makeidx}
 \usepackage{graphicx}
+\usepackage{sidecap} %figure side caption
+\usepackage{wrapfig}
 %\newsubfloat{figure}% Allow subfloats in figure environment
 \usepackage{nameref} %referer til titler
 \usepackage{geometry}
@@ -64,6 +67,7 @@ Kort og rammende ....
 %\subimport{/}{forord_og_tak}
 \tableofcontents*
 \subimport{/}{fremgangsmade}
+\subimport{/}{foranalyse/grl}
 %\subimport{/}{trafikprognosen_2017-2021}
 %\subimport{/}{systemer}
 %\subimport{/}{temaer}
@@ -71,6 +75,7 @@ Kort og rammende ....
 \begin{appendices}
 %\subimport{/}{A_Trafik-maalinger_og_Teles_prognose}
 %\subimport{/}{A_Kundens_behov_og_tele}
+\input{bilag/bilag}
 \end{appendices}
 
 \nocite{*}
