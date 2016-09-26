@@ -1,0 +1,77 @@
+\chapter{Tabs-konceptet}
+Udgangspunktet for beregningerne af en trådløs tjenestes fremkommelighed er en modellering af det effekt-tab, som radiosignalet har undervejs fra transmitteren til receiveren.
+\section{ITU-R's koncept for tab over radio-forbindelser}
+Et udbredt koncept ved anskuelse af transmissionstab er det, der allerede i 1951 første gang blev beskrevet af ITU i rekommendationen ITU-R P.341\cite{itur_p341-5}.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{figure/itur,P341-5,fig01.JPG}
+	\caption{Rec. ITU.R P.341-5, figure 1, Graphical depiction of terms used in the transmission loss concept}
+	\label{fig:zoner}
+\end{figure}
+
+Konceptet udmærker sig ved at isolere effekttab i radiokomponenter som antenner, filtre, bølgeledere, transceivere etc. fra effekttabet i radiosignalet på sin vej ind over landskabet.
+
+Rekommendationen blev lavet i regnestokkenes tid, så alle effekter ($P$) er i $dB_m$ mens alle dæmpninger ($L$) og forstærkninger ($G$) er i $dB$.
+
+\subsection{Systemtabet}
+Det samlede tab i det viste koncept - kaldet ''\emph{systemtabet}'' - er det tab, signalet har fra transmitter til receiver, antennetab indbefattet. Modellen befatter sig ikke med tab i evt. filtre og bølgeledere. 
+
+\begin{equation}
+L_s =P_t -P_r
+\end{equation}
+hvor:
+\begin{itemize}[]
+ \item [$L_s$:] Tab for det samlede system
+ \item [$P_t$:] Effekt afsendt af transmitteren (på udgangen af evt. filtre og bølgeledere) 
+ \item [$P_r$:] Effekt modtaget af receiveren (på indgangen af evt. filtre og bølgeledere)
+\end{itemize}
+
+\subsection{Transmissionstabet}
+\emph{Transmissionstabet ($L$)} er systemtabet uden tab i antennerne: 
+\begin{equation}
+L =L_s - L_{tx} - L_{rc}
+\end{equation}
+hvor:
+\begin{itemize}[]
+ \item [$L$:] Transmissionstabet
+ \item [$L_s$:] Systemtabet 
+ \item [$L_{tx}$:] Tab i senderantennen
+ \item [$L_{rc}$:] Tab i modtageantennen
+\end{itemize}
+
+\subsection{Basistabet og antenneforstærkningen}
+\emph{Basistabet ($L_b$)} er tabet over nogle teoretiske isotropiske (kugleformede) antenner, ækvivaleret med de faktiske antenner ved introduktionen af antenneforstærkningskonceptet: 
+\begin{equation}
+L_b =L + G_t + G_r
+\end{equation}
+hvor:
+\begin{itemize}[]
+	\item [$L_b$:] Basistabet 
+	\item [$L$:] Transmissionstabet	
+	\item [$G_t$:] Senderantennens forstærkning (i forhold til en isotrop antenne)
+	\item [$G_r$:] Modtageantennens forstærkning (i forhold til en isotrop antenne)
+\end{itemize}
+
+Gevinsten ved indførelsen af antenneforstærkningskonceptet er, at man afkobler alle radiokomponenternes (incl. antennernes) karakteristika fra indflydelse på modellen for radiosignalets effekt-tab gennem luften over terrænet på sin vej fra sender til modtager. Definitionen på en antenne-forstærkning er givet i Annex 1, sektion 2 i ITU-R rekommendationen P.341\footnote{''The power gain of an antenna is defined as the ratio, usually expressed in decibels, of the power required at the input of a loss-free reference antenna to the power supplied to the input of the given antenna to produce, in a given direction, the same field strength or the same power flux-density at the same distance. When not specified otherwise, the gain refers to the direction of maximum radiation. The gain may be considered for a specified polarization.''} \cite{itur_p341-5}.
+
+\section{Longley-Rice's computer metode}
+Et kendt eksempel på praktisk anvendelse af ITU's tabskoncept er den såkaldte Longley-Rice model. Denne model blev standard i U.S.A. allerede i 1965\cite{nbs-tn101}.
+
+Longley og Rice havde kun 3 år efter beskrevet en metode, hvorved man med en computer kan beregne tabet\cite{ntis-ad676874}. Metoden dækker et stort dynamikområde. I tabel \ref{tab:lr-range} er området specificeret ud.
+
+\begin{table}[h]
+ \centering
+ \begin{tabular}{ll}
+   Parameter:                                   & Dynamikområde:    \\
+   \hline
+   Frekvens                                     & 20 til 40.000 MHz  \\
+   Antennehøjde                                 & 0,5 til 3.000 m \\
+   Distance                                     & 1 til 2.000 km  \\
+   Luftens brydningsindex (refraktivitet ($n$)) & 250 til 400 \\
+ \end{tabular}
+ \caption{Longley-Rice modellens dynamikområde}
+ \label{tab:lr-range}
+\end{table}
+
+

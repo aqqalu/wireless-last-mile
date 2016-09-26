@@ -26,6 +26,18 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {1.3.4}Dataforbrug}{8}
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {A}Bilag}{9}
+\contentsline {chapter}{\numberline {2}Tabs-konceptet}{9}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {A.1}Telesites}{9}
+\contentsline {section}{\numberline {2.1}ITU-R's koncept for tab over radio-forbindelser}{9}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1.1}Systemtabet}{9}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1.2}Transmissionstabet}{10}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1.3}Basistabet og antenneforst\IeC {\ae }rkningen}{10}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.2}Longley-Rice's computer metode}{11}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {A}Bilag}{12}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {A.1}Telesites}{12}
