@@ -55,23 +55,42 @@ hvor:
 
 Gevinsten ved indførelsen af antenneforstærkningskonceptet er, at man afkobler alle radiokomponenternes (incl. antennernes) karakteristika fra indflydelse på modellen for radiosignalets effekt-tab gennem luften over terrænet på sin vej fra sender til modtager. Definitionen på en antenne-forstærkning er givet i Annex 1, sektion 2 i ITU-R rekommendationen P.341\footnote{''The power gain of an antenna is defined as the ratio, usually expressed in decibels, of the power required at the input of a loss-free reference antenna to the power supplied to the input of the given antenna to produce, in a given direction, the same field strength or the same power flux-density at the same distance. When not specified otherwise, the gain refers to the direction of maximum radiation. The gain may be considered for a specified polarization.''} \cite{itur_p341-5}.
 
+Sendendeeffekten ved den hypotetiske isotropiske sendeantenne er altså:
+\begin{equation}
+P_{it} = P_{t}+ G_t
+\end{equation}
+og modtageeffekten i den hypotetiske isotropiske modtageantenne bliver:
+\begin{equation}
+P_{ir} = P_{r}- G_r
+\end{equation}
+hvor:
+\begin{itemize}[]
+ \item [$P_{it}$:] Sendendeeffekten ud af den hypotetiske isotropiske sendeantenne 
+ \item [$P_{t}$:] Sendendeeffekten ud af den faktiske sendeantenne
+ \item [$P_{ir}$:] Modtageeeffekten ind i den hypotetiske isotropiske modtageantenne
+ \item [$P_{r}$:] Modtageeeffekten ind i den faktiske modtageantenne
+\end{itemize}
+
 \section{Longley-Rice's computer metode}
 Et kendt eksempel på praktisk anvendelse af ITU's tabskoncept er den såkaldte Longley-Rice model. Denne model blev standard i U.S.A. allerede i 1965\cite{nbs-tn101}.
 
-Longley og Rice havde kun 3 år efter beskrevet en metode, hvorved man med en computer kan beregne tabet\cite{ntis-ad676874}. Metoden dækker et stort dynamikområde. I tabel \ref{tab:lr-range} er området specificeret ud.
+Longley og Rice havde kun 3 år efter - i 1968 - beskrevet en metode, hvorved man med en computer kan beregne tabet\cite{ntis-ad676874}.
+
+Metoden dækker et stort dynamikområde. I tabel \ref{tab:lr-range} er området specificeret ud.
 
 \begin{table}[h]
  \centering
  \begin{tabular}{ll}
-   Parameter:                                   & Dynamikområde:    \\
+   Parameter:                                   & Dynamikområde:\\
    \hline
-   Frekvens                                     & 20 til 40.000 MHz  \\
+   Frekvens                                     & 20 til 40.000 MHz\\
    Antennehøjde                                 & 0,5 til 3.000 m \\
-   Distance                                     & 1 til 2.000 km  \\
+   Distance                                     & 1 til 2.000 km \\
    Luftens brydningsindex (refraktivitet ($n$)) & 250 til 400 \\
  \end{tabular}
  \caption{Longley-Rice modellens dynamikområde}
  \label{tab:lr-range}
 \end{table}
 
-
+\subsubsection{Antennens effektive højde over terrænet}
+Hvis terrænet var fladt, ville antennens effektive højde ($h_{e1,2}$) være lig med antennens strukturelle (faktiske) højde ($h_{g1,2}$) over terrænet.  

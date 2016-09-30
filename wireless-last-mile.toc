@@ -24,7 +24,11 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {1.3.3}Kapacitet}{8}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {1.3.4}Dataforbrug}{8}
+\contentsline {subsection}{\numberline {1.3.4}Services}{8}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.3.5}Dataforbrug}{8}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.3.6}Prognose}{8}
 \defcounter {refsection}{0}\relax 
 \contentsline {chapter}{\numberline {2}Tabs-konceptet}{9}
 \defcounter {refsection}{0}\relax 
@@ -38,6 +42,8 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {2.2}Longley-Rice's computer metode}{11}
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {A}Bilag}{12}
+\contentsline {subsubsection}{Antennens effektive h\IeC {\o }jde over terr\IeC {\ae }net}{11}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {A.1}Telesites}{12}
+\contentsline {chapter}{\numberline {A}Bilag}{13}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {A.1}Telesites}{13}
