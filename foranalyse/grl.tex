@@ -51,6 +51,51 @@ I de seneste år, viser tallene, at både den mobile bredbånd- og mobiltelefona
 
 \subsection{Dataforbrug}
 
+\subsection{Busy hour}
+Busy hour er en periode som navnet siger, en periode på 1 time hvor data trafikken er på sin højeste inden for 24 timer. Ifølge den amerikanske multinationale firma Cisco har den globale nettrafik øget med 34 procent i 2014. Cisco forudsiger at den globale busy-hour trafik til øges med en faktor på 3,4 fra 2014 til 2019, dvs. den globale busy-hour trafik vil nå 1,7 Pbps (petabits per second) i år 2019\cite{busy-hour}.\\
+Ud fra de oplysninger har Tele Greenland lavet et prognose over hvor meget befolkningen i Grønland kommer til at bruge i busy-hour perioden. I den næste underafsnit vil prognosen blive beskrevet og forklaret.
+
 \subsection{Prognose}
 I takt med at flere benytter sig af den mobile bredbånd- og mobiltelefonabonnenter, stiger også kapacitetsbehovet for brugerne og kommunikationsnetværket i Grønland.\\
-Tele Greenland har udarbejdet en prognose over kapacitetsbehovet over tid (fra 2017 til 2022) og sted i Grønland. 
+Tele Greenland har udarbejdet en prognose over kapacitetsbehovet over tid (fra 2017 til 2022) og sted i Grønland.\\
+\textit{Bemærk, at udregningerne er regnet ved at antage, at den grønlandske befolkning har det samme busy-hour trafik pr. individ.}.\\
+Først regnes der baglæns, dvs. den globale busy-hour trafik i år 2014 findes først, for at beregne den globale busy-hour trafik i år 2017, ved brug af vækst raten fra 2014 til 2019.\\
+
+\begin{align}
+	Busy Hour_{2014}& = \frac{Busy Hour_{2019}}{vækstfaktor} \nonumber\\
+	&= \frac{1,7 \cdot 10^{15}}{3,4} \nonumber\\
+	&= 500 Tbps
+\end{align}
+
+Ud fra Busy-Hour trafikken fra 2014 kan Busy-Hour trafikken prognosen udregnes sammen med vækstraten.\\ Hvor vækstraten findes ved:
+\begin{align}
+	vækstrate &= vækstfaktor^\frac{1}{5} \nonumber\\
+	&\simeq 1,28
+\end{align}
+
+Nu kan den globale Busy-Hour trafik for frem i tiden udregnes:
+
+\begin{align}
+	Busy Hour &= Busy Hour_{2014} \cdot vækstrate^n
+\end{align}
+\begin{tabbing}
+Hvor:\\
+	$ n $ = er 0 i 2014, 1 i 2015, 2 i 2016 osv.
+\end{tabbing}
+Fra 2017 til 2022 vil Busy-hour trafikken se således ud, se tabel\ref{tab:prognose}:
+\begin{table}[!h]
+    \begin{tabular}{|l|l|}
+    \hline
+    År   & Busy-hour i Pbps \\ \hline
+    2017 & 1,04             \\ \hline
+    2018 & 1,33             \\ \hline
+    2019 & 1,7              \\ \hline
+    2020 & 2,17             \\ \hline
+    2021 & 2,77             \\ \hline
+    2022 & 3,54             \\ \hline
+    \end{tabular}
+    \label{tab:prognose}
+    \caption{Busy-hour trafik prognose fra 2017 til 2022}
+\end{table}
+
+

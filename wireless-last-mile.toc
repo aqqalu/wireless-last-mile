@@ -28,22 +28,24 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {1.3.5}Dataforbrug}{8}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {1.3.6}Prognose}{8}
+\contentsline {subsection}{\numberline {1.3.6}Busy hour}{8}
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {2}Tabs-konceptet}{9}
+\contentsline {subsection}{\numberline {1.3.7}Prognose}{8}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {2.1}ITU-R's koncept for tab over radio-forbindelser}{9}
+\contentsline {chapter}{\numberline {2}Tabs-konceptet}{10}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {2.1.1}Systemtabet}{9}
+\contentsline {section}{\numberline {2.1}ITU-R's koncept for tab over radio-forbindelser}{10}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {2.1.2}Transmissionstabet}{10}
+\contentsline {subsection}{\numberline {2.1.1}Systemtabet}{10}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {2.1.3}Basistabet og antenneforst\IeC {\ae }rkningen}{10}
+\contentsline {subsection}{\numberline {2.1.2}Transmissionstabet}{11}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {2.2}Longley-Rice's computer metode}{11}
+\contentsline {subsection}{\numberline {2.1.3}Basistabet og antenneforst\IeC {\ae }rkningen}{11}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsubsection}{Antennens effektive h\IeC {\o }jde over terr\IeC {\ae }net}{11}
+\contentsline {section}{\numberline {2.2}Longley-Rice's computer metode}{12}
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {A}Bilag}{13}
+\contentsline {subsubsection}{Antennens effektive h\IeC {\o }jde over terr\IeC {\ae }net}{12}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {A.1}Telesites}{13}
+\contentsline {chapter}{\numberline {A}Bilag}{14}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {A.1}Telesites}{14}
