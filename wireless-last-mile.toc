@@ -42,8 +42,12 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {2.2}Longley-Rice's computer metode}{11}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsubsection}{Antennens effektive h\IeC {\o }jde over terr\IeC {\ae }net}{11}
+\contentsline {subsection}{\numberline {2.2.1}Den glatte kurve gennem terr\IeC {\ae }net}{12}
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {A}Bilag}{13}
+\contentsline {subsubsection}{Matematisk beskrivelse af terr\IeC {\ae }net ($\Delta h(d)$)}{12}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {A.1}Telesites}{13}
+\contentsline {subsubsection}{Antennens effektive h\IeC {\o }jde over terr\IeC {\ae }net}{12}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {A}Bilag}{14}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {A.1}Telesites}{14}

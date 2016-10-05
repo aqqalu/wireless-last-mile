@@ -70,6 +70,7 @@ hvor:
  \item [$P_{ir}$:] Modtageeeffekten ind i den hypotetiske isotropiske modtageantenne
  \item [$P_{r}$:] Modtageeeffekten ind i den faktiske modtageantenne
 \end{itemize}
+\FloatBarrier
 
 \section{Longley-Rice's computer metode}
 Et kendt eksempel på praktisk anvendelse af ITU's tabskoncept er den såkaldte Longley-Rice model. Denne model blev standard i U.S.A. allerede i 1965\cite{nbs-tn101}.
@@ -91,6 +92,41 @@ Metoden dækker et stort dynamikområde. I tabel \ref{tab:lr-range} er området 
  \caption{Longley-Rice modellens dynamikområde}
  \label{tab:lr-range}
 \end{table}
+\FloatBarrier
+\subsection{Den glatte kurve gennem terrænet}
+Der laves en cirkelbue gennem terrænet mellem sende- og modtageantennen, således at cirkelbuen skærer gennem terrænnet under den laveste antennes mastefod. 
+
+\subsubsection{Matematisk beskrivelse af terrænet ($\Delta h(d)$)}
+Terrænets beskaffenhed tages ind i Longley-Rice modellen med blandt andet parameteren $\Delta h(d)$, som er middelværdien af højdeforskellene i terrænet mellem sende- og modtage-antennerne. Matematisk kan det skrives som:
+
+\begin{equation}
+\Delta h(d) = \sum\limits_{n=1}^N \frac{\Delta h_n}{\Delta d_n} \xrightarrow {N\rightarrow \infty} \Delta h
+\end{equation}
+hvor:
+\begin{itemize}
+	\item [$\Delta h_n = h_n - h_{n-1}$:] er terrænets højdetilvækst på positionen for den $n$'te måling [m]. 
+	\item [$\Delta d_n = d_n - d_{n-1}$:] er afstanden mellem positionerne for den $n$'te og den $n-1$'te måling [km]. 
+\end{itemize}
+
 
 \subsubsection{Antennens effektive højde over terrænet}
 Hvis terrænet var fladt, ville antennens effektive højde ($h_{e1,2}$) være lig med antennens strukturelle (faktiske) højde ($h_{g1,2}$) over terrænet.  
+\begin{equation}
+h_{e1,2} = h_{g1,2}
+\end{equation}
+hvor:
+\begin{itemize}
+	\item [$h_{e1,2}$:] er henholdsvis sende- og modtageantennens \emph{effektive} højde over jorden 
+	\item [$h_{g1,2}$:] er henholdsvis sende- og modtageantennens \emph{faktiske} højde over jorden 
+\end{itemize}
+
+Hvis antennemasten står på terræn hævet over det omgivende terræn, ville antennens effektive højde ($h_{e1,2}$) være større med antennens strukturelle (faktiske) højde ($h_{g1,2}$) over terrænet.  
+\begin{equation}
+h_{e1,2} = h_{g1,2} + k \cdot exp(-2 \cdot \frac{h_{g1,2}}{\Delta h})
+\end{equation}
+hvor:
+\begin{itemize}
+	\item [$h_{e1,2}$:] er henholdsvis sende- og modtageantennens \emph{effektive} højde over jorden 
+	\item [$h_{g1,2}$:] er henholdsvis sende- og modtageantennens \emph{faktiske} højde over jorden 
+\end{itemize}
+\FloatBarrier
