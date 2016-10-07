@@ -1,0 +1,725 @@
+
+   \magnification=\magstep1 
+   \newtoks\title  \newtoks\authors \newtoks\authorattr 
+   \title={The ITS Irregular Terrain Model, version 1.2.2\cr
+       The Algorithm}
+   \authors={George Hufford}
+     \authorattr={The author is with the Institute for Telecommunication
+     Sciences, National Telecommunications and Information Administration,
+       U.S.~Department of Commerce, Boulder, Colorado\ \ 80303.}
+
+   \def\footfont{\font\ftq=cmr8 \ftq \baselineskip=9pt 
+           \lineskip=0pt 
+           \def\textindent##1{\noindent##1\enspace\ignorespaces}} 
+   \parindent=0pt 
+   \parskip=10pt plus 2pt minus 1pt 
+
+
+   \def\us#1{\ {\rm#1}}
+   \font\Csc=cmcsc10 \def\Fortran{{\Csc Fortran}}
+   \def\sqrtt#1{{\textstyle\sqrt{#1}}}
+     
+   \def\newsec#1\par{\goodbreak\bigskip\message{#1}\leftline{\bf#1}
+      \nobreak\smallskip\vskip-\parskip}
+   \def\inplist#1=#2{\hbox to \hsize{
+       \hbox to 1.5truein{\hfil #1}\hskip .3truein
+       \vtop{\hsize=4truein\noindent\hangindent=2em\strut#2\strut\par}
+       \hfil}\smallskip}
+
+     {\footline={\hfil}\pageno=-1 
+         \hrule height0pt \vskip 3.75truein 
+         \tabskip=0pt plus 1fil 
+         \font\ftq=cmss10 scaled \magstep2\ftq \openup3pt 
+         \halign to \hsize{\hfil#\hfil\cr\the\title\cr} 
+         \bigskip 
+         \rm\halign to \hsize{\hfil#\hfil\cr\the\authors\cr} 
+          \vfill 
+           \centerline{National Telecommunications and Information 
+             Administration} 
+           \centerline{Institute for Telecommunication Sciences} 
+           \centerline{325 Broadway} 
+           \centerline{Boulder, CO 80303-3328, U.S.A.}       \eject}
+         \hrule height0pt\vfil\eject
+    
+    \footline={\ifnum\pageno=1 \hfil \else 
+           \hfil\tenrm\folio\hfil \fi} \pageno=1 
+
+         \begingroup 
+         \font\ftq=cmb10 scaled \magstep1 
+         \tabskip=0pt plus 1fil 
+         {\ftq\openup3pt\halign to \hsize{\hfil#\hfil\cr\the\title\cr}} 
+         \bigskip 
+         \rm\halign to
+   \hsize{\hfil#\hfil\cr\the\authors{\footfont\footnote*%
+   {\the\authorattr}}\cr} 
+     \vskip 30truept plus 10truept minus 5truept  \medskip \endgroup
+   In this report I have attempted to write down the algorithm of the ITM
+   (the Irregular Terrain Model) as it is currently implemented.  There are
+   probably, however, some features of the model that are not documented
+   here.  I hope they are not many, and that one need not refer too often
+   to the original \Fortran\ source code.
+
+   The purpose of the model is to estimate some of the characteristics of a
+   received signal level for a radio link.  This usually means cumulative
+   distributions for what really appears to be a random phenomenon.
+
+     The original model was developed in the late 1960's when land mobile
+   radio and television broadcasting were important systems that required
+   better engineering.  Perhaps that explains the emphasis on low and
+   hidden antennas and on the long-distance fields that might cause
+   interference.
+
+   \newsec Historical Bibliography.
+
+   The reports listed here are probably the more important mileposts in the
+   development of the ITM.  They are not necessarily relevant to the
+   present algorithm, but are included here for their historical interest.
+
+   \begingroup 
+      \parindent=20pt \parskip=6pt plus2pt 
+      \def\[#1]{\indent\llap{[#1]\enspace}\ignorespaces} 
+      \frenchspacing \everypar={\hangindent=\parindent}
+   Barsis, A. P., and P. L. Rice (1963), Prediction and measurement of VHF
+   field strength over irregular terrain using low antenna heights, NBS
+   Report 8891.
+
+   Rice, P. L., A. G. Longley, K. A. Norton, and A. P. Barsis (1967),
+   Transmission loss predictions for tropospheric communication circuits,
+   NBS Tech. Note 101, vols I and II.  Available from NTIS, Access. Nos.
+   AD-687-820 and AD-687-821.
+
+   Longley, A. G., and P. L. Rice (1968), Prediction of tropospheric radio
+   transmission loss over irregular terrain---a computer method 1968, ESSA
+   Tech. Report ERL65-ITS67.  Available from NTIS, Access. No. AD-676-874.
+
+   Longley, A. G., and R. K. Reasoner (1970), Comparison of propagation
+   measurements with predicted values in the 20 to 10,000~MHz range, ESSA
+   Tech. Report ERL148-ITS97.  Available from NTIS, Access. No. ??
+
+   Longley, A. G. (1978), Radio propagation in urban areas, OT Report
+   78-144.  Available from NTIS, Access. No. PB-281-932.
+
+   Longley, A. G., and G. A. Hufford (1979), Memorandum to users of ARPROP,
+   of its subroutine ACR, or of the Longley-Rice model in its latest
+   version (version 1.2); subject: Modifications.  Unpublished.
+
+   Hufford, G. A., A. G. Longley, and W. A. Kissick (1982), A guide to the
+   use of the ITS Irregular Terrain Model in the area prediction mode, NTIA
+   Report 82-100.  Availbale from NTIS, Access. No. PB82-217977.
+
+   Hufford, G. A. (1985), Memorandum to users of the ITS Irregular Terrain
+   Model; subject: Modifications.  Unpublished.
+
+   \endgroup
+   \newsec 1. Input.
+
+   We picture a radio link located in some region on the earth.  Then the
+   input needed by the model is a proper description of that link.
+   The two modes of the model---the {\it area prediction mode} and the {\it
+   point-to-point mode}---are distinguished mostly by the amount of input
+   data required.  The point-to-point mode must provide details of the
+   terrain profile of the link that the area prediction mode will estimate
+   using empirical medians.  Since in other respects the two modes follow
+   very similar paths we shall try here to treat both in parallel. 
+
+   The two terminals of the link we denote as terminals 1 and 2, leaving it
+   to the user to identify which is transmitter and which receiver.
+
+    We try always to use consistent units and we think the user can modify
+   our statements to fit any desired basic units.  For ourselves, we prefer
+   SI units and express lengths (and distances) in meters. Exceptions to
+   the rule of consistent units might include our measure of atmospheric
+   refractivity (N-units or parts per million) and our measure of losses,
+   attenuations, gains, etc. (in decibels).
+
+   \newsec 1.1. General input for both modes of usage.
+
+   \medskip
+   \inplist $d$={Distance between the two terminals.}
+   \inplist $h_{g1}$, \ $h_{g2}$={Antenna structural heights.}
+   \inplist $k$={Wave number, measured in units of reciprocal lengths;
+   see Note~1.}
+   \inplist $\Delta h$={Terrain irregularity parameter.}
+   \inplist $N_s$={Minimum monthly mean surface refractivity, measured in
+   N-units; see Note~2.}
+   \inplist $\gamma_e$={The earth's effective curvature, measured in
+   units of reciprocal length; see Note~3.}
+   \inplist $Z_g$={Surface transfer impedance of the ground---a complex,
+   dimensionless number; see Note~4.}
+   \inplist radio climate={Expressed qualitatively as one of a number of
+   discrete climate types.}
+   Note 1.  The wave number is that of the carrier or central frequency.
+   It is defined to be
+   $$ k=2\pi/\lambda=f/f_0 \qquad\hbox{with $f_0=47.70\us{MHz\cdot m}$}
+                \eqno(1.1)$$
+   where $\lambda$ is the wave length, $f$ the frequency.  (Here and
+   elsewhere we have assumed the speed of light in air is
+   299.7~m/$\mu$s.)
+
+   Note 2.  To simplify its representation, the surface refractivity is
+   sometimes given in terms of $N_0$, the surface refractivity ``reduced
+   to sea level.''  When this is the situation, one must know the general
+   elevation $z_s$ of the region involved, and then
+   $$ N_s=N_0 e^{-z_s/z_1}\qquad\hbox{with $z_1=9.46\us{km}$}.\eqno(1.2)$$
+
+   Note 3.  The earth's effective curvature is the reciprocal of the
+   earth's effective radius and may be expressed as
+   $$ \gamma_e=\gamma_a/K $$
+   where $\gamma_a$ is the earth's actual curvature and $K$ is the
+   ``effective earth radius factor.''  The value is normally determined
+   from the surface refractivity using the empirical formula
+   $$ \gamma_e=\gamma_a(1-0.04665\,e^{N_s/N_1})\eqno(1.3)$$
+   where
+   $$N_1=179.3\hbox{ N-units, and}\quad\gamma_a=157\cdot10^{-9}
+       \us m^{-1}=157\hbox{ N-units/km}.$$
+
+   Note 4.  The ``surface transfer impedance'' is normally defined in
+   terms of the relative permittivity $\epsilon_r$ and conductivity
+   $\sigma$ of the ground, and the polarization of the radio waves
+   involved.  In these terms, we have
+   $$ Z_g=\cases{
+            \sqrt{\epsilon_r^\prime-1}&horizontal polarization\cr
+            \sqrt{\epsilon_r^\prime-1}/\epsilon_r^\prime&vertical
+                      polarization\cr}  \eqno(1.4)$$
+   where $\epsilon_r^\prime$ is the ``complex relative permittivity''
+   defined by
+   $$\epsilon_r^\prime=\epsilon_r+iZ_0\sigma/k,\qquad
+                        Z_0=376.62\us{ohm}.\eqno(1.5)$$
+   The conductivity $\sigma$ is normally expressed in siemens (reciprocal
+   ohms) per meter.
+   \newsec 1.2. Additional input for the area prediction mode.
+
+   \medskip
+   \inplist siting criteria={Criteria describing the care taken at each
+   terminal to assure good radio propagation conditions.  This is
+   expressed qualitatively in three steps: at random, with care, and with
+   great care.}
+
+   \newsec 1.3. Additional input for the point-to-point mode.
+
+   \medskip
+   \inplist$h_{e1}$, \ $h_{e2}$={Antenna effective heights.}
+   \inplist$d_{L1}$, \ $d_{L2}$={Distances from each terminal to its
+   radio horizon.}
+   \inplist$\theta_{e1}$, \ $\theta_{e2}$={Elevation angles of the
+   horizons from each terminal at the height of the antennas.  These are
+   measured in radians.}
+   These quantities, together with $\Delta h$, are all geometric and
+   should be determined from the terrain profile that lies between the
+   two terminals.  We shall not go into detail here.
+
+   The ``effective height'' of an antenna is its height above an
+   ``effective reflecting plane'' or above the ``intermediate
+   foreground'' between the antenna and its horizon.  A difficulty with
+   the model is that there is no explicit definition of this quantity,
+   and the accuracy of the model sometimes depends on the skill of the
+   user in estimating values for these effective heights.
+
+
+   In the case of a line-of-sight path there are no horizons, but the
+   model still requires values for $d_{Lj}$, \ $\theta_{ej}$, \ $j=1, 2$.
+   They should be determined from the formulas used in the area
+   prediction mode  and listed in Section~3 below.  Now it may happen
+   that after these computations one discovers
+   $d>d_L=d_{L1}+d_{L2}$,
+   implying that the path is a beyond-horizon one.  Noting that $d_L$ is
+   a monotone increasing function of the $h_{ej}$ we can assume these
+   latter have been underestimated and that they should be increased by a
+   common factor until $d_L=d$.
+   \newsec 2. Output.
+
+   The output from the model may take on one of several forms at the
+   user's option.  Simplest of these forms is just the {\it reference
+   attenuation} $A_{\rm ref}$.  This is the {\it median} attenuation
+   relative to a free space signal that should be observed on the set of
+   all similar paths during times when the atmospheric conditions
+   correspond to a standard, well-mixed, atmosphere.
+
+   The second form of output provides the two- or three-dimensional
+   cumulative distribution of attenuation in which time, location, and
+   situation variability are all accounted for.  This is done by giving
+   the {\it quantile} $A(q_T,q_L,q_S)$, the attenuation that will not be
+   exceeded as a function of the fractions of time, locations, and
+   situations.  One says
+   {\narrower\narrower\noindent\sl In $q_S$ of the situations there will
+   be {\rm at least} $q_L$ of the locations where the attenuation {\rm
+   does not exceed} $A(q_T,q_L,q_S)$ for {\rm at least} $q_T$ of the
+   time.}
+
+   When the point-to-point mode is used on particular, well-defined paths
+   with definitely fixed terminals, there is no location variability, and
+   one must use a two-dimensional description of cumulative
+   distributions.  One can now say {\sl With probability (or confidence)
+   $q_S$ the attenuation will not exceed $A(q_T,q_S)$ for at least $q_T$
+   of the time}.  The same effect can be achieved by setting $q_L=0.5$ in
+   the three-dimensional formulation.
+
+   On some occassions it will be desireable to go beyond the
+   three-dimensional quantiles and to treat directly the underlying model
+   of variability.  For example, consider the case of a communications link
+   that is to be used once and once only.  For such a ``one-shot'' system
+   one is interested only in what probability or confidence an adequate
+   signal is received that once.  The three-dimensional distributions used
+   above must now be combined into one.
+   \newsec 3. Preparatory Calculations.
+
+   We start with some preliminary calculations of a geometric nature.
+
+   \newsec 3.1. Preparatory calculations for the area prediction mode.
+
+   The parameters $h_{ej}$, \ $d_{Lj}$, \ $\theta_{ej}$, \ $j=1,2$, which
+   are part of the input in the point-to-point mode are, in the area
+   prediction mode, estimated using empirical formulas in which $\Delta
+   h$ plays an important role.
+
+   First, consider the effective heights.  This is where the siting
+   criteria are used.  We have
+   $$h_{ej}=h_{gj}\qquad\hbox{if terminal $j$ is sited at random}.
+          \eqno(3.1)$$
+   Otherwise, let
+   $$B_j=\cases{5\ {\rm m}&if terminal $j$ is sited with care\cr
+               10\ {\rm m}&if terminal $j$ is sited with great
+   care.\cr}$$
+   Then
+   $$B_j'=(B_j-H_1)\sin \bigl({\pi \over 2} \min(h_{g1}/H_2,1)\bigr)
+           +H_1 \qquad\hbox{with $H_1=1\us m,\ H_2=5\us m$},$$
+   and
+   $$h_{ej}=h_{gj}+B_j'e^{-2h_{gj}/\Delta h}.\eqno(3.2)$$
+
+   The remaining parameters are quickly determined.
+   $$ d_{Lsj}=\sqrtt{2h_{ej}/\gamma_e}$$
+   $$ d_{Lj}=d_{Lsj}\exp\bigl[-0.07\sqrtt{
+       \Delta h/\max(h_{ej},H_3)}\,\bigr]
+       \qquad\hbox{with $H_3=5\us m$},\eqno(3.3)$$
+    and finally,
+   $$ \theta_{ej}=[0.65\,\Delta h(d_{Lsj}/d_{Lj}-1)-2h_{ej}]/d_{Lsj}.
+       \eqno(3.4)$$
+
+   \newsec 3.2. Preparatory calculations for both modes.
+
+   \medskip
+   $$\eqalignno{d_{Lsj}&=\sqrtt{2h_{ej}/\gamma_e},\qquad j=1,2&(3.5)\cr
+        d_{Ls}&=d_{Ls1}+d_{Ls2}&(3.6)\cr
+        d_L&=d_{L1}+d_{L2}&(3.7)\cr
+      \theta_e&=\max(\theta_{e1}+\theta_{e2},-d_L\gamma_e).&(3.8)\cr}$$
+
+   We also note here the definitions of two functions of a distance s:
+   $$\Delta h(s)=(1-0.8\,e^{-s/D})\Delta h\qquad\hbox{with
+         $D=50\us{km}$},\eqno(3.9)$$and
+   $$\sigma_h(s)=0.78\,\Delta h(s)\exp\bigl[-(\Delta h(s)/H)^{1/4}\bigr]
+      \qquad\hbox{with $H=16\us m$}.\eqno(3.10)$$
+   \newsec 4. The Reference Attenuation.
+
+   The reference attenuation is determined as a function of the distance
+   $d$ from the piecewise formula
+   $$A_{\rm ref}=\cases{\max\bigl(0,A_{el}+K_1d+K_2\ln(d/d_{Ls})\bigr)
+                         &$d \le d_{Ls}$\cr
+                    A_{ed}+m_dd&$d_{Ls}\le d \le d_x$ \cr
+                    A_{es}+m_sd&$d_x \le d$ \cr}\eqno(4.1)$$
+   where the coefficients $A_{el}$, $K_1$, $K_2$, $A_{ed}$, $m_d$,
+   $A_{es}$, $m_s$, and the distance $d_x$ are calculated using the
+   algorithms below.  The three intervals defined here are called the
+   line-of-sight, diffraction, and scatter regions, respectively.  The
+   function in (4.1) is continuous so that at the two endpoints where
+   $d=d_{Ls}$ or $d_x$ the two formulas give the same results.  It
+   follows that instead of seven independent coefficients there are
+   really only five.
+
+   \newsec 4.1. Coefficients for the diffraction range.
+
+   Set
+   $$\eqalignno{X_{ae}&=(k\gamma_e^2)^{-1/3}&(4.2)\cr
+        d_3&=\max(d_{Ls},d_L+1.3787\,X_{ae})&(4.3)\cr
+        d_4&=d_3+2.7574\,X_{ae}&(4.4)\cr
+        A_3&=A_{\rm diff}(d_3)&(4.5)\cr
+        A_4&=A_{\rm diff}(d_4)&(4.6)\cr}$$
+   where $A_{\rm diff}$ is the function defined below.  The formula for
+   $A_{\rm ref}$ in the diffraction range is then just the linear
+   function having the values $A_3$ and $A_4$ at the distances $d_3$ and
+   $d_4$, respectively.  Thus
+   $$\eqalignno{m_d&=(A_4-A_3)/(d_4-d_3)&(4.7)\cr
+             A_{ed}&=A_3-m_dd_3.&(4.8)\cr}$$
+
+   \newsec 4.1.1. The function $A_{\rm diff}(s)$.
+
+   We first define the weighting factor
+   $$w={1 \over 1+0.1\,\sqrtt Q}\eqno(4.9)$$
+   with
+   $$Q=\min\bigl({k \over 2\pi}\Delta h(s),1000)\left(
+      {h_{e1}h_{e2}+C \over h_{g1}h_{g2}+C}\right)^{1/2}+
+      {d_L+\theta_e/\gamma_e \over s}$$
+   and
+   $$C=\cases{0&in the area prediction mode\cr
+             10\us m^2&in the point-to-point mode\cr}$$
+   and where $\Delta h(s)$ is the function defined in (3.9) above.  Next we
+   define a ``clutter factor''
+   $$A_{f\!o}=\min\bigl[15,5\log\bigl(1+\alpha kh_{g1}h_{g2}\sigma_h(
+      d_{Ls})\bigr)\bigr] \qquad\hbox{with $\alpha=4.77\cdot10^{-4}
+        \us m^{-2}$}\eqno(4.10)$$
+   and with $\sigma_h(s)$ defined in (3.10) above.
+
+   Then $$A_{\rm diff}(s)=(1-w)A_k+wA_r+A_{f\!o}\eqno(4.11)$$ where the
+   ``double knife edge attenuation'' $A_k$ and the ``rounded earth
+   attenuation'' $A_r$ are yet to be defined.
+   Set
+   $$\theta=\theta_e+s\gamma_e\eqno(4.12)$$
+   $$v_j={\theta \over 2}\left({k \over \pi} {d_{Lj}(s-d_L) \over
+         s-d_L+d_{Lj}}\right)^{1/2},\qquad j=1,2\eqno(4.13)$$
+   and then $$A_k={\rm Fn}(v_1)+{\rm Fn}(v_2)\eqno(4.14)$$ where Fn$(v)$
+   is the Fresnel integral defined below.
+
+   For the rounded earth attenuation we use a ``three radii'' method
+   applied to Vogler's formulation of the solution to the smooth,
+   spherical earth problem.  We set
+   $$\gamma_0=\theta/(s-d_L)\qquad\gamma_j=2h_{ej}/d^2_{Lj},\quad
+   j=1,2\eqno(4.15)$$
+   $$\eqalignno{\alpha_j&=(k/\gamma_j)^{1/3},\qquad j=0,1,2&(4.16)\cr
+           K_j&={1 \over i\alpha_jZ_g},\qquad j=0,1,2.&(4.17)\cr}$$
+   Note that the $K_j$ are complex numbers.  To continue, we set
+   $$\eqalignno{x_j&=AB(K_j)\alpha_j\gamma_j d_{Lj},
+         \qquad j=1.2&(4.18)\cr
+         x_0&=AB(K_0)\alpha_0\theta+x_1+x_2&(4.19)\cr}$$
+   and then $$A_r=G(x_0)-F(x_1,K_1)-F(x_2,K_2)-C_1(K_0)\eqno(4.20)$$
+   where $A=151.03$ is a dimensionless constant and the functions $B(K)$,
+   $G(x)$, $F(x,K)$, and $C_1(K)$ are those defined by Vogler.
+
+   In (4.14) and (4.20) we have finished the definition of $A_{\rm
+   diff}$.  We should like, however, to complete the subject by defining
+   more precisely the more or less standard functions mentioned above.
+   The Fresnel integral, for example, may be written as
+   $${\rm Fn}(v)= 20\,\log\biggl|{1 \over \sqrt{2i}}\int_v^\infty
+      e^{i\pi u^2/2}du \biggr|.\eqno(4.21)$$
+
+   For Vogler's formulation to the solution to the spherical earth
+   problem, we first introduce the special Airy function
+   $$\eqalign{{\rm Wi}(z)=&{\rm Ai}(z)+i{\rm Bi}(z)\cr
+                         =&2{\rm Ai}(e^{2\pi i/3}z)\cr}$$
+   where ${\rm Ai}(z)$ and ${\rm Bi}(z)$ are the two standard Airy
+   functions defined in many texts.  They are analytic in the entire
+   complex plane and are particular solutions to the differential
+   equation $$w''(z)-zw(z)=0.$$
+   First, to define the function $B(K)$ we find the smallest solution to
+   the modal equation $${\rm Wi}(t_0)=2^{1/3}K{\rm Wi}'(t_0)$$ and then
+   $$B=2^{-1/3}{\rm Im}\{t_0\}.\eqno(4.22)$$
+   Finally, we also have
+   $$\eqalignno{G(x)&=20\,\log(x^{-1/2}e^{x/A})&(4.23)\cr
+                F(x,K)&=20\,\log\bigl|(\pi/(2^{1/3}AB))^{1/2} {\rm Wi}
+        \bigl(t_0-(x/(2^{1/3}AB))^2\bigr)\bigr|&(4.24)\cr
+                C_1(K)&=20\,\log\bigl|{1\over2}(\pi/(2^{1/3}AB))^{1/2}
+        (2^{2/3}K^2t_0-1){\rm Wi}'(t_0)^2\bigr|&(4.25)\cr}$$
+   where $A$ is again the constant defined above.
+
+   It is of interest to note that for large x we find $F(x,K)\sim G(x)$,
+   and that for those values of $K$ in which we are interested it is a
+   good approximation to say $C_1(K)=20$\ dB.
+   \newsec 4.2. Coefficients for the line-of-sight range.
+
+   We begin by setting
+   $$\eqalignno{d_2=&d_{Ls}&(4.26)\cr
+                A_2=&A_{ed}+m_d d_2.&(4.27)\cr}$$
+
+   Then there are two general cases.  First, if $A_{ed} \ge 0$
+   $$\eqalignno{d_0=&\min\bigl({1\over 2}d_L,1.908\,kh_{e1}h_{e2}\bigr)
+         &(4.28)\cr
+                d_1=&{3\over 4}d_0+{1\over 4}d_L&(4.29)\cr
+                A_0=&A_{\rm los}(d_0)&(4.30)\cr
+                A_1=&A_{\rm los}(d_1)&(4.31)\cr}$$
+   where the function $A_{\rm los}(s)$ is defined below.  The idea, now,
+   is to devise a curve of the form
+   $$A_{el}+K_1d+K_2\ln(d/d_{Ls})$$
+   that passes through the three values $A_0$, $A_1$, $A_2$ at $d_0$,
+   $d_1$, $d_2$, respectively,.  In doing this, however, we require
+   $K_1,\ K_2 \ge 0$, and sometimes this forces us to abandon one or both
+   of the values $A_0$, $A_1$.  We first define
+   $$\eqalignno{K_2'=&\max\left[0,{(d_2-d_0)(A_1-A_0)-(d_1-d_0)(A_2-A_0)
+   \over (d_2-d_0)\ln(d_1/d_0)-(d_1-d_0)\ln(d_2/d_0)}\right]&(4.32)\cr
+     K_1'=&\bigl(A_2-A_0-K_2'\ln(d_2/d_0)\bigr)/(d_2-d_0)&(4.33)\cr}$$
+   which, except for the possibility that the first calculation for
+   $K_2'$ results in a negative value, is simply the straightforward
+   solution for the two corresponding coefficients.  If $K_1'\ge 0$ we
+   then have $$K_1=K_1',\qquad K_2=K_2'.\eqno(4.34)$$
+   If, however, $K_1'< 0$, we define
+   $$K_2''=(A_2-A_0)/\ln(d_2/d_0),\eqno(4.35)$$
+   and if now $K_2''\ge 0$ then $$K_1=0,\qquad K_2=K_2''.\eqno(4.36)$$
+   Otherwise, we abandon both $A_0$ and $A_1$ and set
+   $$K_1=m_d,\qquad K_2=0. \eqno(4.37)$$
+
+   In the second general case we have $A_{ed} < 0$.  We then set
+   $$\eqalignno{d_0=&1.908\,kh_{e1}h_{e2}&(4.38)\cr
+                d_1=&\max(-A_{ed}/m_d,d_L/4).&(4.39)\cr}$$
+   If $d_0 < d_1$ we again evaluate $A_0$, $A_1$, and $K_2'$ as before.
+   If $K_2' > 0$ we also evaluate $K_1'$ and proceed exactly as before.
+   If, however, we have either $d_0 \ge d_1$ or $K_2'=0$, we evaluate
+   $A_1$ and define $$K_1''=(A_2-A_1)/(d_2-d_1).\eqno(4.40)$$
+   If now $K_1'' > 0$ we set $$K_1=K_1'',\qquad K_2=0;\eqno(4.41)$$ and
+   otherwise we use (4.37).
+
+   At this point we will have defined the coefficients $K_1$ and $K_2$.
+   We finally set $$A_{el}=A_2-K_1d_2.\eqno(4.42)$$
+   \newsec 4.2.1. The function $A_{\rm los}(s)$
+
+   First we define the weighting factor
+   $$w=1/\bigl(1+D_1k\Delta h/\max(D_2,d_{Ls})\bigr)\qquad{\rm with}\
+           D_1=47.7\us m,\ D_2=10\us{km}.\eqno(4.43)$$
+   Then $$A_{\rm los}=(1-w)A_d+wA_t\eqno(4.44)$$ where the ``extended
+   diffraction attenuation'' $A_d$ and the ``two-ray attenuation'' $A_t$
+   are yet to be defined.
+
+   First, the extended diffraction attenuation is given very simply by
+   $$A_d=A_{ed}+m_ds.\eqno(4.45)$$
+
+   For the two-ray attenuation, we set
+   $$\sin\psi={h_{e1}+h_{e2}\over\sqrt{s^2+(h_{e1}+h_{e2})^2}}
+             \eqno(4.46)$$
+   and $$R_e'={\sin\psi-Z_g\over\sin\psi+Z_g}\exp[-k\sigma_h(s)\sin\psi]
+             \eqno(4.47)$$
+   where $\sigma_h(s)$ is the function defined in (3.10) above.  Note
+   that $R_e'$ is complex since it uses the complex surface transfer
+   impedance $Z_g$.  Then
+   $$R_e=\cases{R_e'&if $|R_e'|\ge\max(1/2,\sqrt{\sin\psi})$\cr
+          {(R_e'/|R_e'|)}\sqrt{\sin\psi}&otherwise\cr}\eqno(4.48)$$
+   We also set
+   $$\delta'=2kh_{e1}h_{e2}/s\eqno(4.49)$$
+   and
+   $$\delta=\cases{\delta'&if $\delta'\le\pi/2$\cr
+              \pi-(\pi/2)^2/\delta'&otherwise\cr}\eqno(4.50)$$
+   Then finally $$A_t=-20\,\log|1+R_ee^{i\delta}|.\eqno(4.51)$$
+
+   \newsec 4.3. Coefficients for the scatter range.
+
+   Set
+   $$\eqalignno{d_5=&d_L+D_s&(4.52)\cr
+         d_6=&d_5+D_s\qquad{\rm with}\ D_s=200\us{km}.&(4.53)\cr}$$
+   Then define
+   $$\eqalignno{A_5=&A_{\rm scat}(d_5)&(4.54)\cr
+                A_6=&A_{\rm scat}(d_6),&(4.55)\cr}$$
+   where $A_{\rm scat}(s)$ is defined below.  There are, however, some
+   sets of parameters for which $A_{\rm scat}$ is not defined, and it may
+   happen that either or both $A_5$, $A_6$ is undefined.  If this is so,
+   one merely sets $$d_x=+\infty\eqno(4.56)$$ and one can let $A_{es}$,
+   $m_s$ remain undefined. In the more normal situation one has
+   $$\eqalignno{m_s=&(A_6-A_5)/D_s&(4.57)\cr
+         d_x=&\max\bigl[d_{Ls},d_L+X_{ae}\log(kH_s),
+              (A_5-A_{ed}-m_sd_5)/(m_d-m_s)\bigr]&(4.58)\cr
+         A_{es}=&A_{ed}+(m_d-m_s)d_x&(4.59)\cr}$$
+   where $D_s$ is the distance given above, where $X_{ae}$ has been
+   defined in (4.2), and where $H_s=47.7\us m$.
+   \newsec 4.3.1. The function $A_{\rm scat}$.
+
+   Computation of this function uses an abbreviated version of the
+   methods described in Section~9 and Annex~III.5 of NBS~TN101.  First,
+   set
+   $$\eqalignno{\theta=&\theta_e+\gamma_es&(4.60)\cr
+            \theta'=&\theta_{e1}+\theta_{e2}+\gamma_es&(4.61)\cr
+                r_j=&2\,k\theta' h_{ej},\qquad j=1, 2.&(4.62)\cr}$$
+   If both $r_1$ and $r_2$ are less than 0.2 the function $A_{\rm scat}$
+   is not defined (or is infinite).  Otherwise we put
+   $$ A_{\rm scat}(s)=10\,\log(kH\theta^4)
+            +F(\theta s,N_s)+H_0 \eqno(4.63)$$
+   where $F(\theta s,N_s)$ is the function shown in Figure~9.1 of TN101,
+   $H_0$ is the ``frequency gain function'', and $H=47.7\us m$.
+
+   The frequency gain function $H_0$ is a function of $r_1$, $r_2$, the
+   scatter efficiency factor $\eta_s$, and the ``asymmetry factor'' which
+   we shall here call $s_s$.  A difficulty with the present model is that
+   there is not sufficient geometric data in the input variables to
+   determine where the crossover  point is.  This is resolved by assuming
+   it to be midway between the two horizons.  The asymmetry factor, for
+   example, is found by first defining the distance between horizons
+   $$d_s=s-d_{L1}-d_{L2}\eqno(4.64)$$
+   whereupon
+   $$s_s={d_{L2}+d_s/2 \over d_{L1}+d_s/2}.\eqno(4.65)$$
+   There then follows that the height of the crossover point is
+   $$z_0={s_sd\theta'\over(1+s_s)^2}\eqno(4.66)$$
+   and then
+   $$\eta_s={z_0\over Z_0}\big[1+(0.031-N_s 2.32\cdot10^{-3}
+      +N_s^2 5.67\cdot10^{-6})e^{-(z_0/Z_1)^6}\big]\eqno(4.67) $$
+   where
+   $$ Z_0= 1.756\us{km}\qquad Z_1=8.0\us{km} $$
+   The computation of $H_0$ then proceeds according to the rules in
+   Section~9.3 and Figure~9.3 of TN101.
+
+   The model requires these results at the two distances $s=d_5$,~$d_6$,
+   described above.  One further precaution is taken to prevent anomalous
+   results.  If, at $d_5$, calculations show that $H_0$ will exceed
+   15~dB, they are replaced by the value it has at $d_6$.  This helps
+   keep the scatter-mode slope within reasonable bounds.
+   \fontdimen16\tensy=2.7pt \fontdimen17\tensy=2.7pt
+    
+   \newsec 5. Variability---the quantiles of attenuation.
+
+   We want now to compute the quantiles $A(q_T,q_L,q_S)$ where $q_T$,
+   $q_L$, $q_S$, are the desired fractions of time, locations, and
+   situations, respectively.  In the point-to-point mode, we would want a
+   two-fold quantile $A(q_T,q_S)$, but in the present model this is done
+   simply by computing the three-fold quantile with $q_L$ equal to 0.5.
+
+   Because the distributions involved are all normal, or nearly normal,
+   it simplifies the calculations to rescale the desired fractions and to
+   express them in terms of ``standard normal deviates.''  We use the
+   complementary normal distribution
+   $$Q(z)={1 \over \sqrt{2\pi}}\int_z^\infty e^{-t^2/2}dt$$
+   and then the deviate is simply the inverse function
+   $$z(q)=Q^{-1}(q).$$
+   Thus if the random variable $x$ is normally distributed with mean
+   $X_0$ and standard deviation $\sigma$, its quantiles are given by
+   $$X(q)=X_0+\sigma z(q).$$
+
+   Setting $$z_T=z(q_T),\quad z_L=z(q_L),\quad z_S=z(q_S),$$ we now ask
+   for the quantiles $A(z_T,z_L,z_S)$.  In these rescaled variables, it
+   is as though all probabilities are to be plotted on normal probability
+   paper.  In the case of the point-to-point mode we will simply suppose
+   $z_L=0$.
+
+   First we define
+   $$A'=A_{\rm ref}-V_{\rm med}-Y_T-Y_L-Y_S\eqno(5.1)$$
+   where $A_{\rm ref}$ is the reference attenuation defined in Section~4,
+   and where the adjustment $V_{\rm med}$ and the deviations $Y_T$,
+   $Y_L$, $Y_S$, are defined below.  The values of $Y_T$ and $Y_L$ depend
+   on the single variables $z_T$ and $z_L$, respectively.  The value of
+   $Y_S$, on the other hand, depends on all three standard normal
+   deviates.
+
+   The final quantile is a modification of $A'$ given by
+   $$A(z_T,z_L,z_S) = \cases{A'&if $A'\ge 0$\cr \displaystyle A'
+     {29-A'\over 29-10A'}&otherwise.\cr}\eqno(5.2)$$
+
+   An important quantity used below is the ``effective distance.''  We
+   set $$d_{ex}=\sqrt{2a_1h_{e1}}+\sqrt{2a_1h_{e2}}+a_1(kD_1)^{-1/3}
+      \eqno(5.3)$$ with
+   $$a_1=9000\us{km},\qquad D_1=1266\us{km}.$$
+   Then the effective distance is given by
+   $$d_e=\cases{D_0d/d_{ex}&for $d \le d_{ex}$\cr
+            D_0+d-d_{ex}&for $d \ge d_{ex}$\cr}\eqno(5.4)$$
+   with $D_0=130\us{km}$.
+   \newsec 5.1.  Time variability.
+
+   Quantiles of time variability are computed using a variation of the
+   methods described in Section~10 and Annex~III.7 of NBS~TN101, and also
+   in CCIR Report~{238-3}.  Those methods speak of eight or nine discrete
+   radio climates, of which seven have been documented with corresponding
+   empirical curves.  It is these empirical curves to which we refer
+   below.  They are all curves of quantiles of deviations versus the
+   effective distance $d_e$.
+
+   The adjustment from the reference attenuation to the all-year median
+   is$$V_{\rm med}=V_{\rm med}(d_e,{\rm clim})\eqno(5.5)$$where the
+   function is described in Figure~10.13 of TN101.
+
+   The deviation $Y_T$ is piecewise linear in $z_T,$ and may be written in
+   the form
+   $$Y_T=\cases{\sigma_{T-}z_T&$z_T \le 0$\cr
+         \sigma_{T+}z_T&$0\le z_T \le z_D$\cr
+         \sigma_{T+}z_D+\sigma_{TD}(z_T-z_D)&$z_D \le z_T$\cr}\eqno(5.6)$$
+
+   The slopes (or ``pseudo-standard deviations'')
+   $$\eqalign{\sigma_{T-}=&\sigma_{T-}(d_e,{\rm clim})\cr
+              \sigma_{T+}=&\sigma_{T+}(d_e,{\rm clim})\cr}\eqno(5.7)$$
+   are obtained from TN101 in the following way.  For $\sigma_{T-}$ we
+   use the .90 quantile and divide the corresponding ordinates by $z(.90)
+   = -1.282$.  For $\sigma_{T+}$ we use the .10 quantile and divide by
+   $z(.10) = 1.282$.
+
+   The remaining constants in (5.6) pertain to the ``ducting,'' or low
+   probability, case.  We write
+   $$z_D=z_D({\rm clim}),\qquad \sigma_{TD}=C_D({\rm clim})\sigma_{T+}
+                \eqno(5.8)$$
+   where values of $z_D$ and $C_D$ are given in Table~5.1.  In that table
+   we have also listed values of $q_D = Q(z_D)$.
+
+      \midinsert
+   \centerline{Table 5.1.  Ducting (low probability) constants}
+   \medskip
+     \hbox to \hsize{\hfil
+     \vbox{\tabskip=0pt\offinterlineskip
+     \def\trule{\noalign{\hrule}}
+   \halign to 30em{\strut#& \vrule#\tabskip=1em plus 2em&
+      #\hfil& \vrule#& \quad#\hfil&
+         \vrule#& \hfil#& \vrule#& \hfil#& \vrule#
+         \tabskip=0pt\cr\trule
+   &&\vrule height3ex width0ex depth1.8ex
+         \qquad Climate&&$q_D$&&$z_D$&&$C_D$&\cr\trule
+   &&Equatorial&&.10&&1.282&&1.224&\cr\trule
+   &&Continental Subtropical&&\llap{$\approx$}.015&&2.161&&.801&\cr\trule
+   &&Maritime Subtropical&&.10&&1.282&&1.380&\cr\trule
+   &&Desert&&\hfil 0&&$\infty$\hfil&&$-$\hfil&\cr\trule
+   &&Continental Temperate&&.10&&1.282&&1.224&\cr\trule
+   &&Maritime Temperate Overland&&.10&&1.282&&1.518&\cr\trule&&Maritime
+   Temperate Oversea&&.10&&1.282&&1.518&\cr\trule}}
+     \hfil}
+      \endinsert
+   \newsec 5.2. Location variability.
+
+   We set
+   $$Y_L=\sigma_Lz_L\eqno(5.9)$$
+   where$$\sigma_L=10k\Delta h(d)/(k\Delta h(d)+13)$$
+   and $\Delta h(s)$ is defined in (3.9) above.
+
+   \newsec 5.3. Situation variability.
+
+   Set $$\sigma_S=5+3e^{-d_e/D}\eqno(5.10)$$ where $D=100\us{km}$.  Then
+   $$Y_S=\left(\sigma_S^2+{Y_T^2\over 7.8+z_S^2}+{Y_L^2\over 24+z_S^2}
+            \right)^{1/2}z_S \eqno(5.11)$$
+   This latter is intended to reveal how the uncertainties become greater
+   in the wings of the distributions.
+   \newsec 6.  Addenda---numerical approximations.
+
+   Part of the algorithm for the ITM consists in approximations for the
+   standard functions that have been used.  In these approximations,
+   computational simplicity has often taken greater priority than accuracy.
+
+   The Fresnel integral is used in \S 4.1.1 and is defined in (4.21).  We
+   have (for $v>0$)
+   $$ {\rm Fn}(v)\approx \cases{6.02+9.11v-1.27v^2&if $v\le 2.40$\cr
+                    12.953+20\log\,v&otherwise\cr}\eqno(6.1) $$
+
+   The functions $B(K)$, $G(x)$, $F(x,K)$, $C_1(K)$, which are used in
+   diffraction around a smooth earth, are also used in \S 4.1.1 and are
+   defined in (4.22)--(4.25).  We have
+   $$\eqalignno{B(K)\approx& 1.607-|K| &(6.2)\cr
+      G(x)=&.05751x-10\log\,x &(6.3)\cr
+      F(x,K)\approx&\cases{F_2(x,K)&if $0<x\le 200$\cr
+               G(x)+0.0134xe^{-x/200}(F_1(x)-G(x))&if $200<x<2000$\cr
+               G(x)&if $2000\le x$\cr}&(6.4)} $$
+   where
+   $$ F_1(x)=40\log(\max(x,1))-117 \eqno(6.5) $$
+   $$ F_2(x,K)=\cases{F_1(x)&
+            \hskip -5ex if $|K|<10^{-5}$ or $x(-\log|K|)^3>450$\cr
+          2.5\cdot10^{-5}x^2/|K|+20\log|K|-15&otherwise\cr}\eqno(6.6) $$
+   The final approximation here is
+   $$ C_1(K)\approx 20 \eqno(6.7) $$
+
+   To complete this section we have the two functions, $F(\theta d)$ and
+   $H_0$, used for tropospheric scatter.  First,
+   $$ F(D,N_s)=F_0(D)-0.1(N_s-301)e^{-D/D_0} \eqno(6.8) $$
+   where
+   $$ D_0=40\us{km} $$
+   and (when $D$ is given in meters)
+   $$ F_0(D)=\cases{
+       133.4+0.332\cdot10^{-3}D-10\,\log D &for $0<D\le10\us{km}$\cr
+       104.6+0.212\cdot10^{-3}D-2.5\,\log D &for $10<D\le70\us{km}$\cr
+        71.8+0.157\cdot10^{-3}D+5\,\log D &otherwise\cr}\eqno(6.9) $$
+
+   The frequency gain function may be written as
+   $$ H_0=H_{00}(r_1,r_2,\eta_s)+\Delta H_0 \eqno(6.10) $$
+   where
+   $$ \Delta H_0=6(0.6-\log\eta_s)\log s_s \log r_2/s_sr_1 \eqno(6.11) $$
+   and where $H_{00}$ is obtained by linear interpolation between its
+   values when $\eta_s$ is an integer.  For $\eta_s=1,\ldots,5$ we set
+   $$ H_{00}(r_1,r_2,j)=
+          {1\over2}[H_{01}(r_1,j)+H_{01}(r_2,j)] \eqno(6.12) $$
+   with
+   $$ H_{01}(r,j)=\cases{
+         10\,\log(1+24r^{-2}+25r^{-4})&$j=1$\cr
+         10\,\log(1+45r^{-2}+80r^{-4})&$j=2$\cr
+         10\,\log(1+68r^{-2}+177r^{-4})&$j=3$\cr
+         10\,\log(1+80r^{-2}+395r^{-4})&$j=4$\cr
+         10\,\log(1+105r^{-2}+705r^{-4})&$j=5$\cr} \eqno(6.13) $$
+   For $\eta_s>5$ we use the value for $\eta_s=5$, and for $\eta_s=0$ we
+   suppose
+   $$ H_{00}(r_1,r_2,0)=10\,\log\left[\left(1+{\sqrt2\over r_1}\right)^2
+         \left(1+{\sqrt2\over r_2}\right)^2
+        {r_1+r_2\over r_1+r_2+2\sqrt2}\right] \eqno(6.14) $$
+   In all of this, we truncate the values of $s_s$ and $q=r_2/s_sr_1$ at
+   0.1 and 10.
+       \bye
