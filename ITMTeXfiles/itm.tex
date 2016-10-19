@@ -1,0 +1,1429 @@
+% FWEAVE v1.30a (June 17, 1993)
+
+\input fwebmac.sty
+
+\Wbegin[eqalign]{article}{1em}{1em}{itm.cts}{{\&}{\|}{\\}{\\}{\\}{\@}{\.}{\.}}
+
+% --- Beginning of user's limbo section ---
+
+ \identicalpageheadstrue
+ \def\letter#1{\hbox{\kern2em--- {\tt #1} ---}\smallskip}
+ \newtoks\Title
+ \def\Wtitle{\the\Title}
+
+\Title={The Irregular Terrain Model}
+\def\ITM{{\tt ITM}} \def\version{1.2.2}
+
+
+
+\WN1.  Introduction.
+     This is an implementation of the Irregular Terrain Model (\ITM),
+version \version.  The properties of this model and the algorithm defining
+it have been given in the references:
+\begingroup \parindent=0pt \parskip=6pt plus2pt
+   \frenchspacing \everypar={\hangindent=2pc}
+
+Hufford, G. A., A. G. Longley, and W. A. Kissick (1982), A guide to the
+  use of the ITS Irregular Terrain Model in the area prediction mode, NTIA
+  Report 82-100.  (NTIS Order No. PB82-217977)
+
+Hufford, G. A. (1995), The ITS Irregular Terrain Model, version 1.2.2,
+  the Algorithm.
+
+\endgroup
+In particular, the implementation here follows the latter description
+(``the Algorithm'') as closely as seems possible.  Indeed, there are below
+direct references to the equation numbers in ``the Algorithm.''  These are
+indicated with terminology such as ``[Alg 3.5]'' which thus refers to
+equation (3.5) in that document.
+\fi % End of module 1
+
+\WM2.
+
+We begin with a declaration of the two important common blocks.  The
+first lists the primary output values and the primary input parameters.
+The second contains important secondary or derived parameters.
+\par For the primary parameters, the input values (which are often introduced
+by subroutines such as \\{qlrps}) are\par
+{\parskip 0pt\parindent 0pt
+{\leftskip 3em\rightskip 3em
+  The controlling mode \WCD{ \\{mdp}}, distance \WCD{ \\{dist}},
+  antenna structural heights \WCD{ \\{hg}}, wave number (radio frequency) \WCD{
+\\{wn}},
+  terrain irregularity parameter \WCD{ \\{dh}}, surface refractivity \WCD{ %
+\\{ens}},
+  earth's effective curvature \WCD{ \\{gme}}, surface transfer impedance of the
+  ground \WCD{ \\{zgnd}}, antenna effective heights \WCD{ \\{he}}, horizon
+distances \WCD{ \\{dl}},
+  and horizon elevation angles \WCD{ \\{the}}.\par}
+{while the output values are\par}
+{\leftskip 3em\rightskip 3em\par
+  The error indicator \WCD{ \\{kwx}}, and the reference attenuation \WCD{ %
+\\{aref}}.\par}}
+
+\WY\WP\4\4\WX2:Primary parameters\X \X${}\WS{}$\7
+\&{common} \1 ${}{/}\\{prop}{/}$ \\{kwx}, \\{aref}, \\{mdp}, \\{dist}, %
+\\{hg}${}(\WO{2}),$ \\{wn}, \\{dh}, \\{ens}, \\{gme}, \\{zgnd}, \\{he}${}(%
+\WO{2}),$ \\{dl}${}(\WO{2}),$ \\{the}${}(\WO{2}){}$\2\6
+\&{complex} \1\\{zgnd}\2\WY\par
+\WU sections~4, 10, 17, 22, 28, 41, 42, 43, and~47.\fi % End of module 2
+
+\WM3. The secondary parameters are computed in \\{lrprop} and consist of\par
+{\parskip 0pt\parindent 0pt\leftskip 3em\rightskip 3em
+  The line-of-sight distance \WCD{ \\{dlsa}}, scatter distance \WCD{ \\{dx}},
+line-of-sight
+  coefficients \WCD{ \\{ael}}, \WCD{ \\{ak1}}, \WCD{ \\{ak2}}, diffraction
+coefficients \WCD{ \\{aed}}, \WCD{ \\{emd}},
+  scatter coefficients \WCD{ \\{aes}}, \WCD{ \\{ems}}, smooth earth horizon
+distances \WCD{ \\{dls}},
+  total horizon distance \WCD{ \\{dla}}, and total bending angle \WCD{ %
+\\{tha}}.\par}
+\WY\WP\4\4\WX3:Secondary parameters\X \X${}\WS{}$\7
+\&{common} \1 ${}{/}\\{propa}{/}$ \\{dlsa}, \\{dx}, \\{ael}, \\{ak1}, \\{ak2}, %
+\\{aed}, \\{emd}, \\{aes}, \\{ems}, \\{dls}${}(\WO{2}),$ \\{dla}, \\{tha}\2\WY%
+\par
+\WU sections~4, 10, 17, and~22.\fi % End of module 3
+
+\WN4.  LRprop.
+The Longley-Rice propagation program.  This is the basic program; it returns
+the reference attenuation \\{aref}.
+\WY\WP \&{subroutine} \1\\{lrprop}\WIN1{0}(\|d)\2\6
+
+\WBM\Begintt
+  Version 1.2.2 (Aug 71/Mar 77/Aug 84) of the Irregular Terrain
+Model
+    by Longley and Rice (1968)
+\Endtt\WEM
+\1\6
+\WX2:Primary parameters\X \X\6
+\WX3:Secondary parameters\X \X\6
+\&{save} \1\\{wlos}, \\{wscat}, \\{dmin}, \\{xae}\2\6
+\&{logical} \1\\{wlos}, \\{wscat}, \\{wq}\2\6
+${}\&{parameter}\,(\\{third}=\WO{1.}/\WO{3.})$\1\2\7
+\WX5:LRprop\X \X\6
+${}\\{aref}=\@{max}(\\{aref},\39\WO{0.})$\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 4
+
+\WM5.  The value of \\{mdp} controls some of the program flow.  When it equals
+$-1$
+we are in the point-to-point mode, when $1$ we are beginning the area mode,
+and when $0$ we are continuing the area mode.  The assumption is that when
+one uses the area mode, one will want a sequence of results for varying
+distances.
+
+\WY\WP\4\4\WX5:LRprop\X \X${}\WS{}$\7
+${}\&{if}\,(\\{mdp}\WI\WO{0})$ \&{then}\1\6
+\WX6:Do secondary parameters\X \X\6
+\WX7:Check parameter ranges\X \X\6
+\WX9:Diffraction coefficients\X \X\2\6
+\&{endif}\6
+${}\&{if}\,(\\{mdp}\WG\WO{0})$ \&{then}\1\6
+${}\\{mdp}=\WO{0}$\6
+${}\\{dist}=\|d$\2\6
+\&{endif}\6
+${}\&{if}\,(\\{dist}>\WO{0.})$ \&{then}\1\6
+\WX8:Check distance\X \X\2\6
+\&{endif}\6
+${}\&{if}\,(\\{dist}<\\{dlsa})$ \&{then}\1\6
+\WX15:Line-of-sight calculations\X \X\2\6
+\&{endif}\6
+${}\&{if}\,(\\{dist}\WL\WO{0.}\OR\\{dist}\WG\\{dlsa})$ \&{then}\1\6
+\WX20:Troposcatter calculations\X \X\2\6
+\&{endif}\WY\par
+\WU section~4.\fi % End of module 5
+
+\WM6.
+\WY\WP\4\4\WX6:Do secondary parameters\X \X${}\WS{}$\7
+\&{do} ${}\|j=\WO{1},\39\WO{2}$\1\6
+${}\\{dls}(\|j)=\@{sqrt}(\WO{2.}\ast\\{he}(\|j)/\\{gme}){}$\5
+\Wc{[Alg 3.5]}\2\6
+\&{enddo}\6
+${}\\{dlsa}=\\{dls}(\WO{1})+\\{dls}(\WO{2}){}$\5
+\Wc{[Alg 3.6]}\6
+${}\\{dla}=\\{dl}(\WO{1})+\\{dl}(\WO{2}){}$\5
+\Wc{[Alg 3.7]}\6
+${}\\{tha}=\@{max}(\\{the}(\WO{1})+\\{the}(\WO{2}),\39{-}\\{dla}\ast\\{gme}){}$%
+\5
+\Wc{[Alg 3.8]}\6
+${}\\{wlos}=\FALSE$\6
+${}\\{wscat}=\FALSE{}$\par
+\WU section~5.\fi % End of module 6
+
+\WM7.
+\WY\WP\4\4\WX7:Check parameter ranges\X \X${}\WS{}$\7
+${}\&{if}\,(\\{wn}<\WO{0.838}\OR\\{wn}>\WO{210.})$\5
+${}\\{kwx}=\@{max}(\\{kwx},\39\WO{1})$\6
+\&{do} ${}\|j=\WO{1},\39\WO{2}$\1\6
+${}\&{if}\,(\\{hg}(\|j)<\WO{1.}\OR\\{hg}(\|j)>\WO{1000.})$\5
+${}\\{kwx}=\@{max}(\\{kwx},\39\WO{1})$\2\6
+\&{enddo}\6
+\&{do} ${}\|j=\WO{1},\39\WO{2}$\1\6
+${}\&{if}\,(\@{abs}(\\{the}(\|j))>\WO{200\^E-3}\OR\\{dl}(\|j)<\WO{0.1}\ast%
+\\{dls}(\|j)\OR\\{dl}(\|j)>\WO{3.}\ast\\{dls}(\|j))$\5
+${}\\{kwx}=\@{max}(\\{kwx},\39\WO{3})$\2\6
+\&{enddo}\6
+\&{if} ( $\\{ens}<\WO{250.}\OR\\{ens}>\WO{400.}\OR\\{gme}<\WO{75\^E-9}\OR%
+\\{gme}>\WO{250\^E-9}\OR\@{Real}(\\{zgnd})\WL\@{abs}(\\{Imag}(\\{zgnd}))$ $\OR$
+  $\\{wn}<\WO{0.419}\OR\\{wn}>\WO{420.}$ ) $\\{kwx}=\WO{4}$\6
+\&{do} ${}\|j=\WO{1},\39\WO{2}$\1\6
+${}\&{if}\,(\\{hg}(\|j)<\WO{0.5}\OR\\{hg}(\|j)>\WO{3000.})$\5
+${}\\{kwx}=\WO{4}$\2\6
+\&{enddo}\6
+${}\\{dmin}=\@{abs}(\\{he}(\WO{1})-\\{he}(\WO{2}))/\WO{200\^E-3}{}$\WY\par
+\WU section~5.\fi % End of module 7
+
+\WM8.
+\WY\WP\4\4\WX8:Check distance\X \X${}\WS{}$\7
+${}\&{if}\,(\\{dist}>\WO{1000\^E3})$\5
+${}\\{kwx}=\@{max}(\\{kwx},\39\WO{1})$\6
+${}\&{if}\,(\\{dist}<\\{dmin})$\5
+${}\\{kwx}=\@{max}(\\{kwx},\39\WO{3})$\6
+${}\&{if}\,(\\{dist}<\WO{1\^E3}\OR\\{dist}>\WO{2000\^E3})$\5
+${}\\{kwx}=\WO{4}{}$\WY\par
+\WU section~5.\fi % End of module 8
+
+\WN9.  The Diffraction Region.
+    This is the region beyond the smooth-earth horizon at $d_{Lsa}$ and
+short of where tropospheric scatter takes over.  It is a key central region
+and the associated coefficients must always be computed.
+
+
+\WY\WP\4\4\WX9:Diffraction coefficients\X \X${}\WS{}$\7
+${}\|q=\\{adiff}\WIN1{10}(\WO{0.})$\6
+${}\\{xae}=(\\{wn}\ast\\{gme}\EE{\WO{2}})\EE{({-}\\{third})}{}$\5
+\Wc{[Alg 4.2]}\6
+${}\\{d3}=\@{max}(\\{dlsa},\39\WO{1.3787}\ast\\{xae}+\\{dla}){}$\5
+\Wc{[Alg 4.3]}\6
+${}\\{d4}=\\{d3}+\WO{2.7574}\ast\\{xae}{}$\5
+\Wc{[Alg 4.4]}\6
+${}\\{a3}=\\{adiff}\WIN1{10}(\\{d3}){}$\5
+\Wc{[Alg 4.5]}\6
+${}\\{a4}=\\{adiff}\WIN1{10}(\\{d4}){}$\5
+\Wc{[Alg 4.6]}\6
+${}\\{emd}=(\\{a4}-\\{a3})/(\\{d4}-\\{d3}){}$\5
+\Wc{[Alg 4.7]}\6
+${}\\{aed}=\\{a3}-\\{emd}\ast\\{d3}{}$\5
+\Wc{[Alg 4.8]}\WY\par
+\WU section~5.\fi % End of module 9
+
+\WM10.  The function \\{adiff} finds the ``diffraction attenuation'' at the
+distance \\d.  It uses a convex combination of smooth earth diffraction
+and double knife-edge diffraction.  A call with \WCD{ $\|d=\WO{0.}{}$} sets up
+initial
+constants.
+\WY\WP \&{function} \1\\{adiff}\WIN1{0}(\|d)\2\1\7
+\WX2:Primary parameters\X \X\6
+\WX3:Secondary parameters\X \X\6
+\&{save} \1\\{wd1}, \\{xd1}, \\{afo}, \\{qk}, \\{aht}, \\{xht}\2\6
+${}\&{parameter}\,(\\{third}=\WO{1.}/\WO{3.})$\1\2\7
+${}\&{if}\,(\|d\WS\WO{0.})$ \&{then}\1\6
+\WX11:Prepare initial diffraction constants\X \X\2\6
+\&{else}\1\6
+\WX12:Compute diffraction attenuation\X \X\2\6
+\&{endif}\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 10
+
+\WM11.
+\WY\WP\4\4\WX11:Prepare initial diffraction constants\X \X${}\WS{}$\7
+${}\|q=\\{hg}(\WO{1})\ast\\{hg}(\WO{2})$\6
+${}\\{qk}=\\{he}(\WO{1})\ast\\{he}(\WO{2})-\|q$\6
+${}\&{if}\,(\\{mdp}<\WO{0})$\5
+${}\|q=\|q+\WO{10.}$\6
+${}\\{wd1}=\@{sqrt}(\WO{1.}+\\{qk}/\|q)$\6
+${}\\{xd1}=\\{dla}+\\{tha}/\\{gme}{}$\5
+\Wc{$xd1$ and $wd1$ are parts of $Q$ in [Alg 4.9]}\6
+${}\|q=(\WO{1.}-\WO{0.8}\ast\@{exp}({-}\\{dlsa}/\WO{50\^E3}))\ast\\{dh}$\6
+${}\|q=\WO{0.78}\ast\|q\ast\@{exp}({-}(\|q/\WO{16.})\EE{\WO{0.25}}){}$\5
+\Wc{$\sigma_h(dlsa)$}\6
+${}\\{afo}=\@{min}(\WO{15.},\39\WO{2.171}\ast\@{log}(\WO{1.}+\WO{4.77\^E-4}\ast%
+\\{hg}(\WO{1})\ast\\{hg}(\WO{2})\ast\\{wn}\ast\|q)){}$\5
+\Wc{[Alg 4.10]}\6
+${}\\{qk}=\WO{1.}/\@{cabs}(\\{zgnd})$\6
+${}\\{aht}=\WO{20.}{}$\5
+\Wc{[Alg 6.7]}\6
+${}\\{xht}=\WO{0.}$\6
+\&{do} ${}\|j=\WO{1},\39\WO{2}$\1\6
+${}\|a=\WO{0.5}\ast\\{dl}(\|j)\EE{\WO{2}}/\\{he}(\|j){}$\5
+\Wc{[Alg 4.15]}\6
+${}\\{wa}=(\|a\ast\\{wn})\EE{\\{third}}{}$\5
+\Wc{[Alg 4.16]}\6
+${}\\{pk}=\\{qk}/\\{wa}{}$\5
+\Wc{[Alg 4.17]}\6
+${}\|q=(\WO{1.607}-\\{pk})\ast\WO{151.0}\ast\\{wa}\ast\\{dl}(\|j)/\|a{}$\5
+\Wc{[Alg 4.18] and [Alg 6.2]}\6
+${}\\{xht}=\\{xht}+\|q{}$\5
+\Wc{[Alg 4.19], the height-gain part}\6
+${}\\{aht}=\\{aht}+\\{fht}\WIN1{14}(\|q,\39\\{pk}){}$\5
+\Wc{[Alg 4.20]}\2\6
+\&{enddo}\6
+${}\\{adiff}\WIN1{10}=\WO{0.}{}$\WY\par
+\WU section~10.\fi % End of module 11
+
+\WM12.
+\WY\WP\4\4\WX12:Compute diffraction attenuation\X \X${}\WS{}$\7
+${}\\{th}=\\{tha}+\|d\ast\\{gme}{}$\5
+\Wc{[Alg 4.12]}\6
+${}\\{ds}=\|d-\\{dla}$\6
+${}\|q=\WO{0.0795775}\ast\\{wn}\ast\\{ds}\ast\\{th}\EE{\WO{2}}$\6
+${}\\{adiff}\WIN1{10}=\\{aknfe}\WIN1{13}(\|q\ast\\{dl}(\WO{1})/(\\{ds}+\\{dl}(%
+\WO{1})))+\\{aknfe}\WIN1{13}(\|q\ast\\{dl}(\WO{2})/(\\{ds}+\\{dl}(\WO{2}))){}$\5
+\Wc{[Alg 4.14]}\6
+${}\|a=\\{ds}/\\{th}$\6
+${}\\{wa}=(\|a\ast\\{wn})\EE{\\{third}}{}$\5
+\Wc{[Alg 4.16]}\6
+${}\\{pk}=\\{qk}/\\{wa}{}$\5
+\Wc{[Alg 4.17]}\6
+${}\|q=(\WO{1.607}-\\{pk})\ast\WO{151.0}\ast\\{wa}\ast\\{th}+\\{xht}{}$\5
+\Wc{[Alg 4.18] and [Alg 6.2]}\6
+${}\\{ar}=\WO{0.05751}\ast\|q-\WO{4.343}\ast\@{log}(\|q)-\\{aht}{}$\5
+\Wc{[Alg 4.20]}\6
+${}\|q=(\\{wd1}+\\{xd1}/\|d)\ast\@{min}(((\WO{1.}-\WO{0.8}\ast\@{exp}({-}\|d/%
+\WO{50\^E3}))\ast\\{dh}\ast\\{wn}),\39\WO{6283.2})$\6
+${}\\{wd}=\WO{25.1}/(\WO{25.1}+\@{sqrt}(\|q)){}$\5
+\Wc{[Alg 4.9]}\6
+${}\\{adiff}\WIN1{10}=\\{ar}\ast\\{wd}+(\WO{1.}-\\{wd})\ast\\{adiff}\WIN1{10}+%
+\\{afo}{}$\5
+\Wc{[Alg 4.11]}\WY\par
+\WU section~10.\fi % End of module 12
+
+\WM13.  The attenuation due to a single knife edge---the Fresnel integral
+   (in decibels) as a function of $v^2$.  The approximation is that
+   given in [Alg 6.1].
+\WY\WP \&{function} \1\\{aknfe}\WIN1{0}(\\{v2})\2\1\6
+${}\&{if}\,(\\{v2}<\WO{5.76})$ \&{then}\1\6
+${}\\{aknfe}\WIN1{0}=\WO{6.02}+\WO{9.11}\ast\@{sqrt}(\\{v2})-\WO{1.27}\ast%
+\\{v2}$\2\6
+\&{else}\1\6
+${}\\{aknfe}\WIN1{0}=\WO{12.953}+\WO{4.343}\ast\@{log}(\\{v2})$\2\6
+\&{endif}\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 13
+
+\WM14.  The height-gain over a smooth spherical earth---to be used in the
+``three radii'' method.  The approximation is that given in [Alg 6.4].
+\WY\WP \&{function} \1\\{fht}\WIN1{0}(\|x,\39\\{pk})\2\1\6
+${}\&{if}\,(\|x<\WO{200.})$ \&{then}\1\6
+${}\|w={-}\@{log}(\\{pk})$\6
+${}\&{if}\,(\\{pk}<\WO{1\^E-5}\OR\|x\ast\|w\EE{\WO{3}}>\WO{5495.})$ \&{then}\1\6
+${}\\{fht}\WIN1{0}={-}\WO{117.}$\6
+${}\&{if}\,(\|x>\WO{1.})$\5
+${}\\{fht}\WIN1{0}=\WO{17.372}\ast\@{log}(\|x)+\\{fht}\WIN1{0}{}$\5
+\Wc{[Alg 6.5]}\2\6
+\&{else}\1\6
+${}\\{fht}\WIN1{0}=\WO{2.5\^E-5}\ast\|x\EE{\WO{2}}/\\{pk}-\WO{8.686}\ast\|w-%
+\WO{15.}{}$\5
+\Wc{[Alg 6.6]}\2\6
+\&{endif}\2\6
+\&{else}\1\6
+${}\\{fht}\WIN1{0}=\WO{0.05751}\ast\|x-\WO{4.343}\ast\@{log}(\|x){}$\5
+\Wc{[Alg 6.3]}\6
+${}\&{if}\,(\|x<\WO{2000})$ \&{then}\1\6
+${}\|w=\WO{0.0134}\ast\|x\ast\@{exp}({-}\WO{0.005}\ast\|x)$\6
+${}\\{fht}\WIN1{0}=(\WO{1.}-\|w)\ast\\{fht}\WIN1{0}+\|w\ast(\WO{17.372}\ast%
+\@{log}(\|x)-\WO{117.}){}$\5
+\Wc{[Alg 6.4]}\2\6
+\&{endif}\2\6
+\&{endif}\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 14
+
+\WN15.  The Line-of-sight Region.
+
+\WY\WP\4\4\WX15:Line-of-sight calculations\X \X${}\WS{}$\7
+${}\&{if}\,(\WR\\{wlos})$ \&{then}\1\6
+\WX16:Line-of-sight coefficients\X \X\6
+${}\\{wlos}=\TRUE$\2\6
+\&{endif}\6
+${}\&{if}\,(\\{dist}>\WO{0.})$\5
+${}\\{aref}=\\{ael}+\\{ak1}\ast\\{dist}+\\{ak2}\ast\@{log}(\\{dist}){}$\5
+\Wc{[Alg 4.1]}\WY\par
+\WU section~5.\fi % End of module 15
+
+\WM16.
+\WY\WP\4\4\WX16:Line-of-sight coefficients\X \X${}\WS{}$\7
+${}\|q=\\{alos}\WIN1{17}(\WO{0.})$\6
+${}\\{d2}=\\{dlsa}$\6
+${}\\{a2}=\\{aed}+\\{d2}\ast\\{emd}$\6
+${}\\{d0}=\WO{1.908}\ast\\{wn}\ast\\{he}(\WO{1})\ast\\{he}(\WO{2}){}$\5
+\Wc{[Alg 4.38]}\6
+${}\&{if}\,(\\{aed}\WG\WO{0.})$ \&{then}\1\6
+${}\\{d0}=\@{min}(\\{d0},\39\WO{0.5}\ast\\{dla}){}$\5
+\Wc{[Alg 4.28]}\6
+${}\\{d1}=\\{d0}+\WO{0.25}\ast(\\{dla}-\\{d0}){}$\5
+\Wc{[Alg 4.29]}\2\6
+\&{else}\1\6
+${}\\{d1}=\@{max}({-}\\{aed}/\\{emd},\39\WO{0.25}\ast\\{dla}){}$\5
+\Wc{[Alg 4.39]}\2\6
+\&{endif}\6
+${}\\{a1}=\\{alos}\WIN1{17}(\\{d1}){}$\5
+\Wc{[Alg 4.31]}\6
+${}\\{wq}=\FALSE$\6
+${}\&{if}\,(\\{d0}<\\{d1})$ \&{then}\1\6
+${}\\{a0}=\\{alos}\WIN1{17}(\\{d0}){}$\5
+\Wc{[Alg 4.30]}\6
+${}\|q=\@{log}(\\{d2}/\\{d0})$\6
+${}\\{ak2}=\@{max}(\WO{0.},\39((\\{d2}-\\{d0})\ast(\\{a1}-\\{a0})-(\\{d1}-%
+\\{d0})\ast(\\{a2}-\\{a0}))/((\\{d2}-\\{d0})\ast\@{log}(\\{d1}/\\{d0})-(\\{d1}-%
+\\{d0})\ast\|q)){}$\5
+\Wc{[Alg 4.32]}\6
+${}\\{wq}=\\{aed}>\WO{0.}\OR\\{ak2}>\WO{0.}$\6
+${}\&{if}\,(\\{wq})$ \&{then}\1\6
+${}\\{ak1}=(\\{a2}-\\{a0}-\\{ak2}\ast\|q)/(\\{d2}-\\{d0}){}$\5
+\Wc{[Alg 4.33]}\6
+${}\&{if}\,(\\{ak1}<\WO{0.})$ \&{then}\1\6
+${}\\{ak1}=\WO{0.}{}$\5
+\Wc{[Alg 4.36]}\6
+${}\\{ak2}=\@{dim}(\\{a2},\39\\{a0})/\|q{}$\5
+\Wc{[Alg 4.35]}\6
+${}\&{if}\,(\\{ak2}\WS\WO{0.})$\5
+${}\\{ak1}=\\{emd}{}$\5
+\Wc{[Alg 4.37]}\2\6
+\&{endif}\2\6
+\&{endif}\2\6
+\&{endif}\6
+${}\&{if}\,(\WR\\{wq})$ \&{then}\1\6
+${}\\{ak1}=\@{dim}(\\{a2},\39\\{a1})/(\\{d2}-\\{d1}){}$\5
+\Wc{[Alg 4.40]}\6
+${}\\{ak2}=\WO{0.}{}$\5
+\Wc{[Alg 4.41]}\6
+${}\&{if}\,(\\{ak1}\WS\WO{0.})$\5
+${}\\{ak1}=\\{emd}{}$\5
+\Wc{[Alg 4.37]}\2\6
+\&{endif}\6
+${}\\{ael}=\\{a2}-\\{ak1}\ast\\{d2}-\\{ak2}\ast\@{log}(\\{d2}){}$\5
+\Wc{[Alg 4.42]}\WY\par
+\WU section~15.\fi % End of module 16
+
+\WM17.  The function \\{alos} finds the ``line-of-sight attenuation'' at the
+distance \\d.  It uses a convex combination of plane earth fields and
+diffracted fields.  A call with \WCD{ $\|d=\WO{0.}{}$} sets up initial
+constants.
+\WY\WP \&{function} \1\\{alos}\WIN1{0}(\|d)\2\1\6
+\WX2:Primary parameters\X \X\6
+\WX3:Secondary parameters\X \X\6
+\&{save} \1\\{wls}\2\6
+\&{complex} \1\|r\2\7
+${}\\{abq}(\|r)=\@{Real}(\|r)\EE{\WO{2}}+\\{Imag}(\|r)\EE{\WO{2}}{}$\7
+${}\&{if}\,(\|d\WS\WO{0.})$ \&{then}\1\6
+\WX18:Prepare initial line-of-sight constants\X \X\2\6
+\&{else}\1\6
+\WX19:Compute line-of-sight attenuation\X \X\2\6
+\&{endif}\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 17
+
+\WM18.
+\WY\WP\4\4\WX18:Prepare initial line-of-sight constants\X \X${}\WS{}$\7
+${}\\{wls}=\WO{0.021}/(\WO{0.021}+\\{wn}\ast\\{dh}/\@{max}(\WO{10\^E3},\39%
+\\{dlsa})){}$\5
+\Wc{[Alg 4.43]}\6
+${}\\{alos}\WIN1{17}=\WO{0.}{}$\WY\par
+\WU section~17.\fi % End of module 18
+
+\WM19.
+\WY\WP\4\4\WX19:Compute line-of-sight attenuation\X \X${}\WS{}$\7
+${}\|q=(\WO{1.}-\WO{0.8}\ast\@{exp}({-}\|d/\WO{50\^E3}))\ast\\{dh}{}$\5
+\Wc{$\Delta h(d)$}\6
+${}\|s=\WO{0.78}\ast\|q\ast\@{exp}({-}(\|q/\WO{16.})\EE{\WO{0.25}}){}$\5
+\Wc{$\sigma_h(d)$}\6
+${}\|q=\\{he}(\WO{1})+\\{he}(\WO{2})$\6
+${}\\{sps}=\|q/\@{sqrt}(\|d\EE{\WO{2}}+\|q\EE{\WO{2}}){}$\5
+\Wc{$\sin\psi$}\6
+${}\|r=(\\{sps}-\\{zgnd})/(\\{sps}+\\{zgnd})\ast\@{exp}({-}\@{min}(\WO{10.},\39%
+\\{wn}\ast\|s\ast\\{sps})){}$\5
+\Wc{[Alg 4.47]}\6
+${}\|q=\\{abq}(\|r)$\6
+${}\&{if}\,(\|q<\WO{0.25}\OR\|q<\\{sps})$\5
+${}\|r=\|r\ast\@{sqrt}(\\{sps}/\|q){}$\5
+\Wc{[Alg 4.48]}\6
+${}\\{alos}\WIN1{17}=\\{emd}\ast\|d+\\{aed}{}$\5
+\Wc{[Alg 4.45]}\6
+${}\|q=\\{wn}\ast\\{he}(\WO{1})\ast\\{he}(\WO{2})\ast\WO{2.}/\|d{}$\5
+\Wc{[Alg 4.49]}\6
+${}\&{if}\,(\|q>\WO{1.57})$\5
+${}\|q=\WO{3.14}-\WO{2.4649}/\|q{}$\5
+\Wc{[Alg 4.50]}\6
+${}\\{alos}\WIN1{17}=({-}\WO{4.343}\ast\@{log}(\\{abq}(\@{cmplx}(\@{cos}(\|q),%
+\39{-}\@{sin}(\|q))+\|r))-\\{alos}\WIN1{17})\ast\\{wls}+\\{alos}\WIN1{17}{}$\5
+\Wc{[Alg 4.51] and [Alg 4.44]}\WY\par
+\WU section~17.\fi % End of module 19
+
+\WN20.  The Troposcatter Region.
+
+\WY\WP\4\4\WX20:Troposcatter calculations\X \X${}\WS{}$\7
+${}\&{if}\,(\WR\\{wscat})$ \&{then}\1\6
+\WX21:Troposcatter coefficients\X \X\6
+${}\\{wscat}=\TRUE$\2\6
+\&{endif}\6
+${}\&{if}\,(\\{dist}>\\{dx})$ \&{then}\1\6
+${}\\{aref}=\\{aes}+\\{ems}\ast\\{dist}$\2\6
+\&{else}\1\6
+${}\\{aref}=\\{aed}+\\{emd}\ast\\{dist}{}$\5
+\Wc{[Alg 4.1]}\2\6
+\&{endif}\WY\par
+\WU section~5.\fi % End of module 20
+
+\WM21.
+\WY\WP\4\4\WX21:Troposcatter coefficients\X \X${}\WS{}$\7
+${}\|q=\\{ascat}\WIN1{22}(\WO{0.})$\6
+${}\\{d5}=\\{dla}+\WO{200\^E3}{}$\5
+\Wc{[Alg 4.52]}\6
+${}\\{d6}=\\{d5}+\WO{200\^E3}{}$\5
+\Wc{[Alg 4.53]}\6
+${}\\{a6}=\\{ascat}\WIN1{22}(\\{d6}){}$\5
+\Wc{[Alg 4.54]}\6
+${}\\{a5}=\\{ascat}\WIN1{22}(\\{d5}){}$\5
+\Wc{[Alg 4.55]}\6
+${}\&{if}\,(\\{a5}<\WO{1000.})$ \&{then}\1\6
+${}\\{ems}=(\\{a6}-\\{a5})/\WO{200\^E3}{}$\5
+\Wc{[Alg 4.57]}\6
+${}\\{dx}=\@{max}(\\{dlsa},\39\\{dla}+\WO{0.3}\ast\\{xae}\ast\@{log}(\WO{47.7}%
+\ast\\{wn}),\39(\\{a5}-\\{aed}-\\{ems}\ast\\{d5})/(\\{emd}-\\{ems})){}$\5
+\Wc{[Alg 4.58]}\6
+${}\\{aes}=(\\{emd}-\\{ems})\ast\\{dx}+\\{aed}{}$\5
+\Wc{[Alg 4.59]}\2\6
+\&{else}\1\6
+${}\\{ems}=\\{emd}$\6
+${}\\{aes}=\\{aed}$\6
+${}\\{dx}=\WO{10\^E6}{}$\5
+\Wc{[Alg 4.56]}\2\6
+\&{endif}\WY\par
+\WU section~20.\fi % End of module 21
+
+\WM22.  The function \\{ascat} finds the ``scatter attenuation'' at the
+distance \\d.  It uses an approximation to the methods of NBS TN101
+with checks for inadmissable situations.  For proper operation, the
+larger distance ($d=d_6$) must be the first called.  A call with $d=0.$
+sets up initial constants.
+\WY\WP \&{function} \1\\{ascat}\WIN1{0}(\|d)\2\1\6
+\WX2:Primary parameters\X \X\6
+\WX3:Secondary parameters\X \X\6
+\&{save} \1\\{ad}, \\{rr}, \\{etq}, \\{h0s}\2\7
+${}\&{if}\,(\|d\WS\WO{0.})$ \&{then}\1\6
+\WX23:Prepare initial scatter constants\X \X\2\6
+\&{else}\1\6
+\WX24:Compute scatter attenuation\X \X\2\6
+\&{endif}\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 22
+
+\WM23.
+\WY\WP\4\4\WX23:Prepare initial scatter constants\X \X${}\WS{}$\7
+${}\\{ad}=\\{dl}(\WO{1})-\\{dl}(\WO{2})$\6
+${}\\{rr}=\\{he}(\WO{2})/\\{he}(\WO{1})$\6
+${}\&{if}\,(\\{ad}<\WO{0.})$ \&{then}\1\6
+${}\\{ad}={-}\\{ad}$\6
+${}\\{rr}=\WO{1.}/\\{rr}$\2\6
+\&{endif}\6
+${}\\{etq}=(\WO{5.67\^E-6}\ast\\{ens}-\WO{2.32\^E-3})\ast\\{ens}+\WO{0.031}{}$\5
+\Wc{Part of [Alg 4.67]}\6
+${}\\{h0s}={-}\WO{15.}$\6
+${}\\{ascat}\WIN1{22}=\WO{0.}{}$\WY\par
+\WU section~22.\fi % End of module 23
+
+\WM24.
+\WY\WP\WMd$\\{Noscat}\WIN2{0}$\5
+\NC $\WO{0}{}$\par
+\WY\WP\4\4\WX24:Compute scatter attenuation\X \X${}\WS{}$\7
+${}\&{if}\,(\\{h0s}>\WO{15.})$ \&{then}\1\6
+${}\\{h0}=\\{h0s}$\2\6
+\&{else}\1\6
+${}\\{th}=\\{the}(\WO{1})+\\{the}(\WO{2})+\|d\ast\\{gme}{}$\5
+\Wc{[Alg 4.61]}\6
+${}\\{r2}=\WO{2.}\ast\\{wn}\ast\\{th}$\6
+${}\\{r1}=\\{r2}\ast\\{he}(\WO{1})$\6
+${}\\{r2}=\\{r2}\ast\\{he}(\WO{2}){}$\5
+\Wc{[Alg 4.62]}\6
+${}\&{if}\,(\\{r1}<\WO{0.2}\WW\\{r2}<\WO{0.2})$ \&{then}\1\6
+${}\\{ascat}\WIN1{22}=\WO{1001.}{}$\5
+\Wc{The function is undefined}\6
+\&{go} \&{to} \\{Noscat}\WIN2{0}\2\7
+\&{endif}\6
+${}\\{ss}=(\|d-\\{ad})/(\|d+\\{ad}){}$\5
+\Wc{[Alg 4.65]}\6
+${}\|q=\\{rr}/\\{ss}$\6
+${}\\{ss}=\@{max}(\WO{0.1},\39\\{ss})$\6
+${}\|q=\@{min}(\@{max}(\WO{0.1},\39\|q),\39\WO{10.})$\6
+${}\\{z0}=(\|d-\\{ad})\ast(\|d+\\{ad})\ast\\{th}\ast\WO{0.25}/\|d{}$\5
+\Wc{[Alg 4.66]}\6
+${}\\{et}=(\\{etq}\ast\@{exp}({-}\@{min}(\WO{1.7},\39\\{z0}/\WO{8.0\^E3})\EE{%
+\WO{6}})+\WO{1.})\ast\\{z0}/\WO{1.7556\^E3}{}$\5
+\Wc{[Alg 4.67]}\6
+${}\\{ett}=\@{max}(\\{et},\39\WO{1.})$\6
+${}\\{h0}=(\\{h0f}\WIN1{25}(\\{r1},\39\\{ett})+\\{h0f}\WIN1{25}(\\{r2},\39%
+\\{ett}))\ast\WO{0.5}{}$\5
+\Wc{[Alg 6.12]}\6
+${}\\{h0}=\\{h0}+\@{min}(\\{h0},\39(\WO{1.38}-\@{log}(\\{ett}))\ast\@{log}(%
+\\{ss})\ast\@{log}(\|q)\ast\WO{0.49}){}$\5
+\Wc{[Alg 6.10] and [Alg 6.11]}\6
+${}\\{h0}=\@{dim}(\\{h0},\39\WO{0.})$\6
+${}\&{if}\,(\\{et}<\WO{1.})$\5
+${}\\{h0}=\\{et}\ast\\{h0}+(\WO{1.}-\\{et})\ast\WO{4.343}\ast\@{log}(((\WO{1.}+%
+\WO{1.4142}/\\{r1})\ast(\WO{1.}+\WO{1.4142}/\\{r2}))\EE{\WO{2}}\ast(\\{r1}+%
+\\{r2})/(\\{r1}+\\{r2}+\WO{2.8284})){}$\5
+\Wc{[Alg 6.14]}\6
+${}\&{if}\,(\\{h0}>\WO{15.}\WW\\{h0s}\WG\WO{0.})$\5
+${}\\{h0}=\\{h0s}$\2\6
+\&{endif}\6
+${}\\{h0s}=\\{h0}$\6
+${}\\{th}=\\{tha}+\|d\ast\\{gme}{}$\5
+\Wc{[Alg 4.60]}\6
+${}\\{ascat}\WIN1{22}=\\{ahd}\WIN1{26}(\\{th}\ast\|d)+\WO{4.343}\ast\@{log}(%
+\WO{47.7}\ast\\{wn}\ast\\{th}\EE{\WO{4}})-\WO{0.1}\ast(\\{ens}-\WO{301.})\ast%
+\@{exp}({-}\\{th}\ast\|d/\WO{40\^E3})+\\{h0}{}$\5
+\Wc{[Alg 4.63] and [Alg 6.8]}\6
+\llap{\\{Noscat}\WIN2{0}\Colon\  }\&{continue}\WY\par
+\WU section~22.\fi % End of module 24
+
+\WM25.  This is the $H_{01}$ funmction for scatter fields as defined in [Alg %
+\S6]
+\WY\WP \&{function} \1\\{h0f}\WIN1{0}(\|r,\39\\{et})\2\1\6
+\&{dimension} \1\|a${}(\WO{5}),$ \|b${}(\WO{5})$\2\6
+\&{data}  \1\|a${}(\WO{1}),$ \|a${}(\WO{2}),$ \|a${}(\WO{3}),$ \|a${}(\WO{4}),$
+\|a${}(\WO{5}){/}\WO{25.},\39\WO{80.},\39\WO{177.},\39\WO{395.},\39%
+\WO{705.}{/}$\2\6
+\&{data}  \1\|b${}(\WO{1}),$ \|b${}(\WO{2}),$ \|b${}(\WO{3}),$ \|b${}(\WO{4}),$
+\|b${}(\WO{5}){/}\WO{24.},\39\WO{45.},\39\WO{68.},\39\WO{80.},\39\WO{105.}{/}$%
+\2\7
+${}\\{it}=\\{et}$\6
+${}\&{if}\,(\\{it}\WL\WO{0})$ \&{then}\1\6
+${}\\{it}=\WO{1}$\6
+${}\|q=\WO{0.}$\2\6
+\&{else} \&{if}$\,(\\{it}\WG\WO{5})$ \&{then}\1\6
+${}\\{it}=\WO{5}$\6
+${}\|q=\WO{0.}$\2\6
+\&{else}\1\6
+${}\|q=\\{et}-\\{it}$\2\6
+\&{endif}\6
+${}\|x=(\WO{1.}/\|r)\EE{\WO{2}}$\6
+${}\\{h0f}\WIN1{0}=\WO{4.343}\ast\@{log}((\|a(\\{it})\ast\|x+\|b(\\{it}))\ast%
+\|x+\WO{1.}){}$\5
+\Wc{[Alg 6.13]}\6
+${}\&{if}\,(\|q\WI\WO{0.})$\5
+${}\\{h0f}\WIN1{0}=(\WO{1.}-\|q)\ast\\{h0f}\WIN1{0}+\|q\ast\WO{4.343}\ast%
+\@{log}((\|a(\\{it}+\WO{1})\ast\|x+\|b(\\{it}+\WO{1}))\ast\|x+\WO{1.})$\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 25
+
+\WM26.  This is the $F(\theta d)$ function for scatter fields
+
+\WY\WP \&{function} \1\\{ahd}\WIN1{0}(\\{td})\2\1\6
+\&{dimension} \1\|a${}(\WO{3}),$ \|b${}(\WO{3}),$ \|c${}(\WO{3})$\2\6
+\&{data}  \1\|a${}(\WO{1}),$ \|a${}(\WO{2}),$ \|a${}(\WO{3}){/}\WO{133.4},\39%
+\WO{104.6},\39\WO{71.8}{/}$\2\6
+\&{data}  \1\|b${}(\WO{1}),$ \|b${}(\WO{2}),$ \|b${}(\WO{3}){/}\WO{0.332\^E-3},%
+\39\WO{0.212\^E-3},\39\WO{0.157\^E-3}{/}$\2\6
+\&{data}  \1\|c${}(\WO{1}),$ \|c${}(\WO{2}),$ \|c${}(\WO{3}){/}{-}\WO{4.343},%
+\39{-}\WO{1.086},\39\WO{2.171}{/}$\2\7
+${}\&{if}\,(\\{td}\WL\WO{10\^E3})$ \&{then}\1\6
+${}\|i=\WO{1}$\2\6
+\&{else} \&{if}$\,(\\{td}\WL\WO{70\^E3})$ \&{then}\1\6
+${}\|i=\WO{2}$\2\6
+\&{else}\1\6
+${}\|i=\WO{3}$\2\6
+\&{endif}\6
+${}\\{ahd}\WIN1{0}=\|a(\|i)+\|b(\|i)\ast\\{td}+\|c(\|i)\ast\@{log}(\\{td}){}$\5
+\Wc{[Alg 6.9]}\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 26
+
+\WN27.  The Statistics.
+
+\\{LRprop} will stand alone to compute \\{aref}.  To complete the story,
+however, one must find the quantiles of the attenuation and this is what
+\\{avar} will do.  It, too, is a stand alone subroutine, except that it
+requires the output from \\{LRprop}, as well as values in a ``variability
+parameters'' common block.  These latter values consist of\par
+{\parskip 0pt\parindent 0pt\leftskip 3em\rightskip 3em
+  A control switch \WCD{ \\{lvar}}, the standard deviation of situation
+variability
+  (confidence) \WCD{ \\{sgc}}, the desired mode of variability \WCD{ %
+\\{mdvar}}, and the
+  climate indicator \WCD{ \\{klim}}.\par}
+Of these, \WCD{ \\{sgc}} is output and may be used to answer the inverse
+problem:
+with what confidence will a threshold signal level be exceeded.
+\WY\WP\4\4\WX27:Variability parameters\X \X${}\WS{}$\7
+\&{common} \1 ${}{/}\\{propv}{/}$ \\{lvar}, \\{sgc}, \\{mdvar}, \\{klim}\2\WY%
+\par
+\WU sections~28, 42, and~43.\fi % End of module 27
+
+\WM28. When in the area prediction mode, one needs a threefold quantile of
+attenuation which corresponds to the fraction $q_T$ of time, the fraction
+$q_L$ of locations, and the fraction $q_S$ of ``situations.''  In the
+point-to-point mode, one needs only $q_T$ and $q_S$.  For efficiency,
+\\{avar} is written as a function of the ``standard normal deviates''
+$z_T$, $z_L$, and $z_S$ corresponding to the requested fractions.  Thus,
+for example, $q_T=Q(z_T)$ where $Q(z)$ is the ``complementary standard
+normal distribution.''  For the point-to-point mode one sets $z_L=0$ which
+corresponds to the median $q_L=0.50$.
+
+The subprogram is written trying to reduce duplicate calculations.  This
+is done through the switch \WCD{ \\{lvar}}.  On first entering, set $lvar=5$.
+Then
+all parameters will be initialized, and $lvar$ will be changed to 0.  If
+the program is to be used to find several quantiles with different values
+of $z_T$, $z_L$, or $z_S$, then $lvar$ should be 0, as it is.  If the
+distance is changed, set $lvar=1$ and parameters that depend on the distance
+will be recomputed.  If antenna heights are changed, set $lvar=2$; if the
+frequency, $lvar=3$; if the mode of variability $mdvar$, set $lvar=4$; and
+finally if the climate is changed, set $lvar=5$.  The higher the value of
+$lvar$, the more parameters will be recomputed.
+
+\WY\WP \&{function} \1\\{avar}\WIN1{0}(\\{zzt},\39\\{zzl},\39\\{zzc})\7
+\WX2:Primary parameters\X \X\6
+\WX27:Variability parameters\X \X\6
+\&{save} \1\\{kdv}, \\{wl}, \\{ws}, \\{dexa}, \\{de}, \\{vmd}, \\{vs0}, %
+\\{sgl}, \\{sgtm}, \\{sgtp}, \\{sgtd}, \\{tgtd}, \\{gm}, \\{gp}, \\{cv1}, %
+\\{cv2}, \\{yv1}, \\{yv2}, \\{yv3}, \\{csm1}, \\{csm2}, \\{ysm1}, \\{ysm2}, %
+\\{ysm3}, \\{csp1}, \\{csp2}, \\{ysp1}, \\{ysp2}, \\{ysp3}, \\{csd1}, \\{zd}, %
+\\{cfm1}, \\{cfm2}, \\{cfm3}, \\{cfp1}, \\{cfp2}, \\{cfp3}\2\7
+\&{dimension} \1\\{bv1}${}(\WO{7}),$ \\{bv2}${}(\WO{7}),$ \\{xv1}${}(\WO{7}),$ %
+\\{xv2}${}(\WO{7}),$ \\{xv3}${}(\WO{7})$\2\6
+\&{dimension} \1\\{bsm1}${}(\WO{7}),$ \\{bsm2}${}(\WO{7}),$ \\{xsm1}${}(%
+\WO{7}),$ \\{xsm2}${}(\WO{7}),$ \\{xsm3}${}(\WO{7})$\2\6
+\&{dimension} \1\\{bsp1}${}(\WO{7}),$ \\{bsp2}${}(\WO{7}),$ \\{xsp1}${}(%
+\WO{7}),$ \\{xsp2}${}(\WO{7}),$ \\{xsp3}${}(\WO{7})$\2\6
+\&{dimension} \1\\{bsd1}${}(\WO{7}),$ \\{bzd1}${}(\WO{7})$\2\6
+\&{dimension} \1\\{bfm1}${}(\WO{7}),$ \\{bfm2}${}(\WO{7}),$ \\{bfm3}${}(%
+\WO{7}),$ \\{bfp1}${}(\WO{7}),$ \\{bfp2}${}(\WO{7}),$ \\{bfp3}${}(\WO{7})$\2\7
+\&{logical} \1\\{ws}, \\{wl}\2\7
+${}\&{parameter}\,(\\{third}=\WO{1.}/\WO{3.})$\1\2\7
+\WX29:Climatic constants\X \X\7
+\WX30:Function \WCD{ \\{curv}}\X \X\7
+${}\&{if}\,(\\{lvar}>\WO{0})$ \&{then}\1\6
+\WX31:Set up variability coefficients\X \X\6
+${}\\{lvar}=\WO{0}$\2\6
+\&{endif}\6
+\WX37:Correct normal deviates\X \X\6
+\WX38:Resolve standard deviations\X \X\6
+\WX39:Resolve deviations \WCD{ \\{yr}}, \WCD{ \\{yc}}\X \X\6
+${}\\{avar}\WIN1{0}=\\{aref}-\\{vmd}-\\{yr}-\\{sgc}\ast\\{zc}{}$\5
+\Wc{[Alg 5.1]}\6
+${}\&{if}\,(\\{avar}\WIN1{0}<\WO{0.})$\5
+${}\\{avar}\WIN1{0}=\\{avar}\WIN1{0}\ast(\WO{29.}-\\{avar}\WIN1{0})/(\WO{29.}-%
+\WO{10.}\ast\\{avar}\WIN1{0}){}$\5
+\Wc{[Alg 5.2]}\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 28
+
+\WM29.
+\WY\WP\4\4\WX29:Climatic constants\X \X${}\WS{}$\7
+\Wc{       equatorial, continental subtropical, maritime subtropical, desert,
+           continental temperate, maritime over land, maritime over sea}\7
+\&{data}  \1\\{bv1}${}{/}{-}\WO{9.67},\39{-}\WO{0.62},\39\WO{1.26},\39{-}%
+\WO{9.21},\39{-}\WO{0.62},\39{-}\WO{0.39},\39\WO{3.15}{/}$\2\6
+\&{data}  \1\\{bv2}${}{/}\WO{12.7},\39\WO{9.19},\39\WO{15.5},\39\WO{9.05},\39%
+\WO{9.19},\39\WO{2.86},\39\WO{857.9}{/}$\2\6
+\&{data}  \1\\{xv1}${}{/}\WO{144.9\^E3},\39\WO{228.9\^E3},\39\WO{262.6\^E3},\39%
+\WO{84.1\^E3},\39\WO{228.9\^E3},\39\WO{141.7\^E3},\39\WO{2222.\^E3}{/}$\2\6
+\&{data}  \1\\{xv2}${}{/}\WO{190.3\^E3},\39\WO{205.2\^E3},\39\WO{185.2\^E3},\39%
+\WO{101.1\^E3},\39\WO{205.2\^E3},\39\WO{315.9\^E3},\39\WO{164.8\^E3}{/}$\2\6
+\&{data}  \1\\{xv3}${}{/}\WO{133.8\^E3},\39\WO{143.6\^E3},\39\WO{99.8\^E3},\39%
+\WO{98.6\^E3},\39\WO{143.6\^E3},\39\WO{167.4\^E3},\39\WO{116.3\^E3}{/}$\2\6
+\&{data}  \1\\{bsm1}${}{/}\WO{2.13},\39\WO{2.66},\39\WO{6.11},\39\WO{1.98},\39%
+\WO{2.68},\39\WO{6.86},\39\WO{8.51}{/}$\2\6
+\&{data}  \1\\{bsm2}${}{/}\WO{159.5},\39\WO{7.67},\39\WO{6.65},\39\WO{13.11},%
+\39\WO{7.16},\39\WO{10.38},\39\WO{169.8}{/}$\2\6
+\&{data}  \1\\{xsm1}${}{/}\WO{762.2\^E3},\39\WO{100.4\^E3},\39\WO{138.2\^E3},%
+\39\WO{139.1\^E3},\39\WO{93.7\^E3},\39\WO{187.8\^E3},\39\WO{609.8\^E3}{/}$\2\6
+\&{data}  \1\\{xsm2}${}{/}\WO{123.6\^E3},\39\WO{172.5\^E3},\39\WO{242.2\^E3},%
+\39\WO{132.7\^E3},\39\WO{186.8\^E3},\39\WO{169.6\^E3},\39\WO{119.9\^E3}{/}$\2\6
+\&{data}  \1\\{xsm3}${}{/}\WO{94.5\^E3},\39\WO{136.4\^E3},\39\WO{178.6\^E3},\39%
+\WO{193.5\^E3},\39\WO{133.5\^E3},\39\WO{108.9\^E3},\39\WO{106.6\^E3}{/}$\2\6
+\&{data}  \1\\{bsp1}${}{/}\WO{2.11},\39\WO{6.87},\39\WO{10.08},\39\WO{3.68},\39%
+\WO{4.75},\39\WO{8.58},\39\WO{8.43}{/}$\2\6
+\&{data}  \1\\{bsp2}${}{/}\WO{102.3},\39\WO{15.53},\39\WO{9.60},\39\WO{159.3},%
+\39\WO{8.12},\39\WO{13.97},\39\WO{8.19}{/}$\2\6
+\&{data}  \1\\{xsp1}${}{/}\WO{636.9\^E3},\39\WO{138.7\^E3},\39\WO{165.3\^E3},%
+\39\WO{464.4\^E3},\39\WO{93.2\^E3},\39\WO{216.0\^E3},\39\WO{136.2\^E3}{/}$\2\6
+\&{data}  \1\\{xsp2}${}{/}\WO{134.8\^E3},\39\WO{143.7\^E3},\39\WO{225.7\^E3},%
+\39\WO{93.1\^E3},\39\WO{135.9\^E3},\39\WO{152.0\^E3},\39\WO{188.5\^E3}{/}$\2\6
+\&{data}  \1\\{xsp3}${}{/}\WO{95.6\^E3},\39\WO{98.6\^E3},\39\WO{129.7\^E3},\39%
+\WO{94.2\^E3},\39\WO{113.4\^E3},\39\WO{122.7\^E3},\39\WO{122.9\^E3}{/}$\2\6
+\&{data}  \1\\{bsd1}${}{/}\WO{1.224},\39\WO{0.801},\39\WO{1.380},\39\WO{1.000},%
+\39\WO{1.224},\39\WO{1.518},\39\WO{1.518}{/}$\2\6
+\&{data}  \1\\{bzd1}${}{/}\WO{1.282},\39\WO{2.161},\39\WO{1.282},\39\WO{20.},%
+\39\WO{1.282},\39\WO{1.282},\39\WO{1.282}{/}$\2\6
+\&{data}  \1\\{bfm1}${}{/}\WO{1.},\39\WO{1.},\39\WO{1.},\39\WO{1.},\39%
+\WO{0.92},\39\WO{1.},\39\WO{1.}{/}$\2\6
+\&{data}  \1\\{bfm2}${}{/}\WO{0.},\39\WO{0.},\39\WO{0.},\39\WO{0.},\39%
+\WO{0.25},\39\WO{0.},\39\WO{0.}{/}$\2\6
+\&{data}  \1\\{bfm3}${}{/}\WO{0.},\39\WO{0.},\39\WO{0.},\39\WO{0.},\39%
+\WO{1.77},\39\WO{0.},\39\WO{0.}{/}$\2\6
+\&{data}  \1\\{bfp1}${}{/}\WO{1.},\39\WO{0.93},\39\WO{1.},\39\WO{0.93},\39%
+\WO{0.93},\39\WO{1.},\39\WO{1.}{/}$\2\6
+\&{data}  \1\\{bfp2}${}{/}\WO{0.},\39\WO{0.31},\39\WO{0.},\39\WO{0.19},\39%
+\WO{0.31},\39\WO{0.},\39\WO{0.}{/}$\2\6
+\&{data}  \1\\{bfp3}${}{/}\WO{0.},\39\WO{2.00},\39\WO{0.},\39\WO{1.79},\39%
+\WO{2.00},\39\WO{0.},\39\WO{0.}{/}$\2\7
+\&{data}  \1\\{rt}, \\{rl}${}{/}\WO{7.8},\39\WO{24.}{/}$\2\WY\par
+\WU section~28.\fi % End of module 29
+
+\WM30.
+\WY\WP\4\4\WX30:Function \WCD{ \\{curv}}\X \X${}\WS{}$\7
+${}\\{curv}(\\{c1},\39\\{c2},\39\\{x1},\39\\{x2},\39\\{x3})=(\\{c1}+\\{c2}/(%
+\WO{1.}+((\\{de}-\\{x2})/\\{x3})\EE{\WO{2}}))\ast((\\{de}/\\{x1})\EE{\WO{2}})/(%
+\WO{1.}+((\\{de}/\\{x1})\EE{\WO{2}})){}$\WY\par
+\WU section~28.\fi % End of module 30
+
+\WM31.
+\WY\WP\WMd$\\{Climate}\WIN2{0}$\5
+\NC $\WO{0}{}$\par
+\WP\WMd$\\{Mode\_var}\WIN2{0}$\5
+\NC $\WO{0}{}$\par
+\WP\WMd$\\{Frequency}\WIN2{0}$\5
+\NC $\WO{0}{}$\par
+\WP\WMd$\\{System}\WIN2{0}$\5
+\NC $\WO{0}{}$\par
+\WP\WMd$\\{Distance}\WIN2{0}$\5
+\NC $\WO{0}{}$\WY\par
+\WY\WP\4\4\WX31:Set up variability coefficients\X \X${}\WS{}$\7
+${}\&{if}\,(\\{lvar}<\WO{5})$\5
+\&{go} \&{to} (\\{Distance}\WIN2{0},\39\\{System}\WIN2{0},\39\\{Frequency}%
+\WIN2{0},\39\\{Mode\_var}\WIN2{0}),\39\\{lvar}\6
+\llap{\\{Climate}\WIN2{0}\Colon\  }\&{continue}\6
+${}\&{if}\,(\\{klim}\WL\WO{0}\OR\\{klim}>\WO{7})$ \&{then}\1\6
+${}\\{klim}=\WO{5}$\6
+${}\\{kwx}=\@{max}(\\{kwx},\39\WO{2})$\2\6
+\&{endif}\6
+\WX32:Climatic coefficients\X \X\6
+\llap{\\{Mode\_var}\WIN2{0}\Colon\  }\&{continue}\6
+\WX33:Mode of variability coefficients\X \X\6
+\llap{\\{Frequency}\WIN2{0}\Colon\  }\&{continue}\6
+\WX34:Frequency coefficients\X \X\6
+\llap{\\{System}\WIN2{0}\Colon\  }\&{continue}\6
+\WX35:System coefficients\X \X\6
+\llap{\\{Distance}\WIN2{0}\Colon\  }\&{continue}\6
+\WX36:Distance coefficients\X \X\WY\par
+\WU section~28.\fi % End of module 31
+
+\WM32.
+\WY\WP\4\4\WX32:Climatic coefficients\X \X${}\WS{}$\7
+${}\\{cv1}=\\{bv1}(\\{klim})$\6
+${}\\{cv2}=\\{bv2}(\\{klim})$\6
+${}\\{yv1}=\\{xv1}(\\{klim})$\6
+${}\\{yv2}=\\{xv2}(\\{klim})$\6
+${}\\{yv3}=\\{xv3}(\\{klim})$\6
+${}\\{csm1}=\\{bsm1}(\\{klim})$\6
+${}\\{csm2}=\\{bsm2}(\\{klim})$\6
+${}\\{ysm1}=\\{xsm1}(\\{klim})$\6
+${}\\{ysm2}=\\{xsm2}(\\{klim})$\6
+${}\\{ysm3}=\\{xsm3}(\\{klim})$\6
+${}\\{csp1}=\\{bsp1}(\\{klim})$\6
+${}\\{csp2}=\\{bsp2}(\\{klim})$\6
+${}\\{ysp1}=\\{xsp1}(\\{klim})$\6
+${}\\{ysp2}=\\{xsp2}(\\{klim})$\6
+${}\\{ysp3}=\\{xsp3}(\\{klim})$\6
+${}\\{csd1}=\\{bsd1}(\\{klim})$\6
+${}\\{zd}=\\{bzd1}(\\{klim})$\6
+${}\\{cfm1}=\\{bfm1}(\\{klim})$\6
+${}\\{cfm2}=\\{bfm2}(\\{klim})$\6
+${}\\{cfm3}=\\{bfm3}(\\{klim})$\6
+${}\\{cfp1}=\\{bfp1}(\\{klim})$\6
+${}\\{cfp2}=\\{bfp2}(\\{klim})$\6
+${}\\{cfp3}=\\{bfp3}(\\{klim}){}$\WY\par
+\WU section~31.\fi % End of module 32
+
+\WM33.
+\WY\WP\4\4\WX33:Mode of variability coefficients\X \X${}\WS{}$\7
+${}\\{kdv}=\\{mdvar}$\6
+${}\\{ws}=\\{kdv}\WG\WO{20}$\6
+${}\&{if}\,(\\{ws})$\5
+${}\\{kdv}=\\{kdv}-\WO{20}$\6
+${}\\{wl}=\\{kdv}\WG\WO{10}$\6
+${}\&{if}\,(\\{wl})$\5
+${}\\{kdv}=\\{kdv}-\WO{10}$\6
+${}\&{if}\,(\\{kdv}<\WO{0}\OR\\{kdv}>\WO{3})$ \&{then}\1\6
+${}\\{kdv}=\WO{0}$\6
+${}\\{kwx}=\@{max}(\\{kwx},\39\WO{2})$\2\6
+\&{endif}\WY\par
+\WU section~31.\fi % End of module 33
+
+\WM34.
+\WY\WP\4\4\WX34:Frequency coefficients\X \X${}\WS{}$\7
+${}\|q=\@{log}(\WO{0.133}\ast\\{wn})$\6
+${}\\{gm}=\\{cfm1}+\\{cfm2}/((\\{cfm3}\ast\|q)\EE{\WO{2}}+\WO{1.})$\6
+${}\\{gp}=\\{cfp1}+\\{cfp2}/((\\{cfp3}\ast\|q)\EE{\WO{2}}+\WO{1.}){}$\WY\par
+\WU section~31.\fi % End of module 34
+
+\WM35.
+\WY\WP\4\4\WX35:System coefficients\X \X${}\WS{}$\7
+${}\\{dexa}=\@{sqrt}(\WO{18\^E6}\ast\\{he}(\WO{1}))+\@{sqrt}(\WO{18\^E6}\ast%
+\\{he}(\WO{2}))+(\WO{575.7\^E12}/\\{wn})\EE{\\{third}}{}$\5
+\Wc{[Alg 5.3]}\WY\par
+\WU section~31.\fi % End of module 35
+
+\WM36.
+\WY\WP\4\4\WX36:Distance coefficients\X \X${}\WS{}$\7
+${}\&{if}\,(\\{dist}<\\{dexa})$ \&{then}\1\6
+${}\\{de}=\WO{130\^E3}\ast\\{dist}/\\{dexa}$\2\6
+\&{else}\1\6
+${}\\{de}=\WO{130\^E3}+\\{dist}-\\{dexa}{}$\5
+\Wc{[Alg 5.4]}\2\6
+\&{endif}\6
+${}\\{vmd}=\\{curv}(\\{cv1},\39\\{cv2},\39\\{yv1},\39\\{yv2},\39\\{yv3}){}$\5
+\Wc{[Alg 5.5]}\6
+${}\\{sgtm}=\\{curv}(\\{csm1},\39\\{csm2},\39\\{ysm1},\39\\{ysm2},\39\\{ysm3})%
+\ast\\{gm}$\6
+${}\\{sgtp}=\\{curv}(\\{csp1},\39\\{csp2},\39\\{ysp1},\39\\{ysp2},\39\\{ysp3})%
+\ast\\{gp}{}$\5
+\Wc{[Alg 5.7]}\6
+${}\\{sgtd}=\\{sgtp}\ast\\{csd1}{}$\5
+\Wc{[Alg 5.8]}\6
+${}\\{tgtd}=(\\{sgtp}-\\{sgtd})\ast\\{zd}$\6
+${}\&{if}\,(\\{wl})$ \&{then}\1\6
+${}\\{sgl}=\WO{0.}$\2\6
+\&{else}\1\6
+${}\|q=(\WO{1.}-\WO{0.8}\ast\@{exp}({-}\\{dist}/\WO{50\^E3}))\ast\\{dh}\ast%
+\\{wn}$\6
+${}\\{sgl}=\WO{10.}\ast\|q/(\|q+\WO{13.}){}$\5
+\Wc{[Alg 5.9]}\2\6
+\&{endif}\6
+${}\&{if}\,(\\{ws})$ \&{then}\1\6
+${}\\{vs0}=\WO{0.}$\2\6
+\&{else}\1\6
+${}\\{vs0}=(\WO{5.}+\WO{3.}\ast\@{exp}({-}\\{de}/\WO{100\^E3}))\EE{\WO{2}}{}$\5
+\Wc{[Alg 5.10]}\2\6
+\&{endif}\WY\par
+\WU section~31.\fi % End of module 36
+
+\WM37.
+\WY\WP\4\4\WX37:Correct normal deviates\X \X${}\WS{}$\7
+${}\\{zt}=\\{zzt}$\6
+${}\\{zl}=\\{zzl}$\6
+${}\\{zc}=\\{zzc}$\6
+${}\&{if}\,(\\{kdv}\WS\WO{0})$ \&{then}\1\6
+${}\\{zt}=\\{zc}$\6
+${}\\{zl}=\\{zc}$\2\6
+\&{else} \&{if}$\,(\\{kdv}\WS\WO{1})$ \&{then}\1\6
+${}\\{zl}=\\{zc}$\2\6
+\&{else} \&{if}$\,(\\{kdv}\WS\WO{2})$ \&{then}\1\6
+${}\\{zl}=\\{zt}$\2\6
+\&{endif}\6
+${}\&{if}\,(\@{abs}(\\{zt})>\WO{3.10}\OR\@{abs}(\\{zl})>\WO{3.10}\OR\@{abs}(%
+\\{zc})>\WO{3.10})$\5
+${}\\{kwx}=\@{max}(\\{kwx},\39\WO{1}){}$\WY\par
+\WU section~28.\fi % End of module 37
+
+\WM38.
+\WY\WP\4\4\WX38:Resolve standard deviations\X \X${}\WS{}$\7
+${}\&{if}\,(\\{zt}<\WO{0.})$ \&{then}\1\6
+${}\\{sgt}=\\{sgtm}$\2\6
+\&{else} \&{if}$\,(\\{zt}\WL\\{zd})$ \&{then}\1\6
+${}\\{sgt}=\\{sgtp}$\2\6
+\&{else}\1\6
+${}\\{sgt}=\\{sgtd}+\\{tgtd}/\\{zt}{}$\5
+\Wc{[Alg 5.6]}\2\6
+\&{endif}\6
+${}\\{vs}=\\{vs0}+(\\{sgt}\ast\\{zt})\EE{\WO{2}}/(\\{rt}+\\{zc}\EE{\WO{2}})+(%
+\\{sgl}\ast\\{zl})\EE{\WO{2}}/(\\{rl}+\\{zc}\EE{\WO{2}}){}$\5
+\Wc{[Alg 5.11]}\WY\par
+\WU section~28.\fi % End of module 38
+
+\WM39.
+\WY\WP\4\4\WX39:Resolve deviations \WCD{ \\{yr}}, \WCD{ \\{yc}}\X \X${}\WS{}$\7
+${}\&{if}\,(\\{kdv}\WS\WO{0})$ \&{then}\1\6
+${}\\{yr}=\WO{0.}$\6
+${}\\{sgc}=\@{sqrt}(\\{sgt}\EE{\WO{2}}+\\{sgl}\EE{\WO{2}}+\\{vs})$\2\6
+\&{else} \&{if}$\,(\\{kdv}\WS\WO{1})$ \&{then}\1\6
+${}\\{yr}=\\{sgt}\ast\\{zt}$\6
+${}\\{sgc}=\@{sqrt}(\\{sgl}\EE{\WO{2}}+\\{vs})$\2\6
+\&{else} \&{if}$\,(\\{kdv}\WS\WO{2})$ \&{then}\1\6
+${}\\{yr}=\@{sqrt}(\\{sgt}\EE{\WO{2}}+\\{sgl}\EE{\WO{2}})\ast\\{zt}$\6
+${}\\{sgc}=\@{sqrt}(\\{vs})$\2\6
+\&{else}\1\6
+${}\\{yr}=\\{sgt}\ast\\{zt}+\\{sgl}\ast\\{zl}$\6
+${}\\{sgc}=\@{sqrt}(\\{vs})$\2\6
+\&{endif}\WY\par
+\WU section~28.\fi % End of module 39
+
+\WN40.  Preparatory Subroutines.
+
+The next three subroutines may be used to introduce input parameters for
+\WCD{ \\{LRprop}}.  One first calls \WCD{ \\{qlrps}\WIN1{41}} and then either %
+\WCD{ \\{qlra}\WIN1{42}} (for the area
+prediction mode) or \WCD{ \\{qlrpfl}\WIN1{43}} (for the point-to-point mode).
+
+\fi % End of module 40
+
+\WM41. This subroutine converts the frequency \\{fmhz}, the surface
+refractivity
+reduced to sea level \\{en0} and general system elevation \\{zsys}, and the
+polarization and ground constants \\{eps}, \\{sgm}, to wave number \\{wn},
+surface refractivity \\{ens}, effective earth curvature \\{gme}, and surface
+impedance \\{zgnd}.  It may be used with either the area prediction or the
+point-to-point mode.
+
+\WY\WP \&{subroutine} \1\\{qlrps}\WIN1{0}(\\{fmhz},\39\\{zsys},\39\\{en0},\39%
+\\{ipol},\39\\{eps},\39\\{sgm})\2\1\7
+\WX2:Primary parameters\X \X\7
+\&{complex} \1\\{zq}\2\7
+\&{data}  \1\\{gma}${}{/}\WO{157\^E-9}{/}$\2\7
+${}\\{wn}=\\{fmhz}/\WO{47.7}{}$\5
+\Wc{[Alg 1.1]}\6
+${}\\{ens}=\\{en0}$\6
+${}\&{if}\,(\\{zsys}\WI\WO{0.})$\5
+${}\\{ens}=\\{ens}\ast\@{exp}({-}\\{zsys}/\WO{9460.}){}$\5
+\Wc{[Alg 1.2]}\6
+${}\\{gme}=\\{gma}\ast(\WO{1.}-\WO{0.04665}\ast\@{exp}(\\{ens}/\WO{179.3})){}$\5
+\Wc{[Alg 1.3]}\6
+${}\\{zq}=\@{cmplx}(\\{eps},\39\WO{376.62}\ast\\{sgm}/\\{wn}){}$\5
+\Wc{[Alg 1.5]}\6
+${}\\{zgnd}=\@{csqrt}(\\{zq}-\WO{1.})$\6
+${}\&{if}\,(\\{ipol}\WI\WO{0})$\5
+${}\\{zgnd}=\\{zgnd}/\\{zq}{}$\5
+\Wc{[Alg 1.4]}\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 41
+
+\WM42. This is used to prepare the model in the area prediction mode.
+Normally,
+one first calls \\{qlrps} and then \\{qlra}.  Before calling the latter,
+one should have defined in the \WCD{ \WX2:Primary parameters\X \X} the antenna
+heights
+\\{hg}, the terrain irregularity parameter \\{dh} , and (probably through
+\\{qlrps}) the variables \\{wn}, \\{ens}, \\{gme}, and \\{zgnd}.  The input
+\\{kst} will define siting criteria for the terminals, \\{klimx} the climate,
+and \\{mdvarx} the mode of variability.  If $klimx \le 0$ or $mdvarx < 0$ the
+associated parameters remain unchanged.
+
+The operational flow of a calling program might appear as follows.
+{\parindent 3cm \parskip 0pt \obeylines
+  {\bf set} ${\it kwx}=0$, ${\it lvar}=5$;
+  {\bf define} {\it hg, dh} and {\bf call} {\it qlrps};
+  optionally, {\bf define} {\it mdvar, klim};
+  {\bf call} {\it qlra};
+  {\bf loop for} selected distances {\it d}:
+  \quad{\bf set} ${\it lvar}=\max({\it lvar},1)$;
+  \quad{\bf call} ${\it lrprop}(d)$;
+  \quad{\bf loop for} selected quantiles:
+  \qquad$A={\it avar}(\ldots)$;
+  \qquad{\bf output} $A$;
+  \quad{\bf repeat};
+  {\bf repeat};
+  {\bf check} {\it kwx};
+  \quad{\bf end}}
+
+
+\WY\WP \&{subroutine} \1\\{qlra}\WIN1{0}(\\{kst},\39\\{klimx},\39\\{mdvarx})\2%
+\1\6
+\&{dimension} \1\\{kst}${}(\WO{2})$\2\7
+\WX2:Primary parameters\X \X\6
+\WX27:Variability parameters\X \X\7
+\&{do} ${}\|j=\WO{1},\39\WO{2}$\1\6
+${}\&{if}\,(\\{kst}(\|j)\WL\WO{0})$ \&{then}\1\6
+${}\\{he}(\|j)=\\{hg}(\|j)$\2\6
+\&{else}\1\6
+${}\|q=\WO{4.}$\6
+${}\&{if}\,(\\{kst}(\|j)\WI\WO{1})$\5
+${}\|q=\WO{9.}$\6
+${}\&{if}\,(\\{hg}(\|j)<\WO{5.})$\5
+${}\|q=\|q\ast\@{sin}(\WO{0.3141593}\ast\\{hg}(\|j))$\6
+${}\\{he}(\|j)=\\{hg}(\|j)+(\WO{1.}+\|q)\ast\@{exp}({-}\@{min}(\WO{20.},\39%
+\WO{2.}\ast\\{hg}(\|j)/\@{max}(\WO{1\^E-3},\39\\{dh})))$\2\6
+\&{endif}\6
+${}\|q=\@{sqrt}(\WO{2.}\ast\\{he}(\|j)/\\{gme})$\6
+${}\\{dl}(\|j)=\|q\ast\@{exp}({-}\WO{0.07}\ast\@{sqrt}(\\{dh}/\@{max}(\\{he}(%
+\|j),\39\WO{5.})))$\6
+${}\\{the}(\|j)=(\WO{0.65}\ast\\{dh}\ast(\|q/\\{dl}(\|j)-\WO{1.})-\WO{2.}\ast%
+\\{he}(\|j))/\|q$\2\6
+\&{enddo}\7
+${}\\{mdp}=\WO{1}$\6
+${}\\{lvar}=\@{max}(\\{lvar},\39\WO{3})$\6
+${}\&{if}\,(\\{mdvarx}\WG\WO{0})$ \&{then}\1\6
+${}\\{mdvar}=\\{mdvarx}$\6
+${}\\{lvar}=\@{max}(\\{lvar},\39\WO{4})$\2\6
+\&{endif}\6
+${}\&{if}\,(\\{klimx}>\WO{0})$ \&{then}\1\6
+${}\\{klim}=\\{klimx}$\6
+${}\\{lvar}=\WO{5}$\2\6
+\&{endif}\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 42
+
+\WM43. This subroutine may be used to prepare for the point-to-point mode.
+Since
+the path is fixed, it has only one value of \\{aref} and therefore at the end
+of the routine there is a call to \\{lrprop}.  To complete the process one
+needs to call \\{avar} for whatever quantiles are desired.
+
+This mode requires the terrain profile lying between the terminals.  This
+should be a sequence of surface elevations at points along the great circle
+path joining the two points.  It should start at the ground beneath the
+first terminal and end at the ground beneath the second.  In the present
+routine it is assumed that the elevations are {\it equispaced} along the
+path.  They are stored in the array \\{pfl} along with two defining
+parameters.  We will have ${\it pfl}(1)={\it enp}$, the number (as a real
+value) of increments in the path; ${\it pfl}(2)={\it xi}$, the length of
+each increment; ${\it pfl}(3)=z(0)$, the beginning elevation; and then
+${\it pfl}(np+3)=z(np)$, the last elevation.
+
+The operational flow of a calling program might appear as follows.
+
+{\parindent 3cm \parskip 0pt \obeylines
+  {\bf set} ${\it kwx}=0$, ${\it lvar}=5$;
+  {\bf define} {\it pfl, hg} and {\bf call} {\it qlrps};
+  optionally, {\bf define} {\it mdvar, klim};
+  {\bf call} {\it qlrpfl};
+  {\bf loop for} selected quantiles:
+  \quad$A={\it avar}(\ldots)$;
+  \quad{\bf output} $A$;
+  {\bf repeat};
+  {\bf check} {\it kwx};
+  \quad{\bf end}}
+
+\WY\WP \&{subroutine} \1\\{qlrpfl}\WIN1{0}(\\{pfl},\39\\{klimx},\39\\{mdvarx})%
+\2\1\6
+\&{dimension} \1\\{pfl}${}(\ast)$\2\7
+\WX2:Primary parameters\X \X\6
+\WX27:Variability parameters\X \X\7
+\&{dimension} \1\\{xl}${}(\WO{2})$\2\7
+${}\\{dist}=\\{pfl}(\WO{1})\ast\\{pfl}(\WO{2})$\6
+${}\\{np}=\\{pfl}(\WO{1})$\6
+\WX44:Horizons and \WCD{ \\{dh}} from \WCD{ \\{pfl}}\X \X\6
+${}\&{if}\,(\\{dl}(\WO{1})+\\{dl}(\WO{2})>\WO{1.5}\ast\\{dist})$ \&{then}\1\6
+\WX45:Redo line-of-sight horizons\X \X\2\6
+\&{else}\1\6
+\WX46:Transhorizon effective heights\X \X\2\6
+\&{endif}\7
+${}\\{mdp}={-}\WO{1}$\6
+${}\\{lvar}=\@{max}(\\{lvar},\39\WO{3})$\6
+${}\&{if}\,(\\{mdvarx}\WG\WO{0})$ \&{then}\1\6
+${}\\{mdvar}=\\{mdvarx}$\6
+${}\\{lvar}=\@{max}(\\{lvar},\39\WO{4})$\2\6
+\&{endif}\6
+${}\&{if}\,(\\{klimx}>\WO{0})$ \&{then}\1\6
+${}\\{klim}=\\{klimx}$\6
+${}\\{lvar}=\WO{5}$\2\6
+\&{endif}\7
+\&{call} ${}\\{lrprop}\WIN1{4}(\WO{0.}){}$\7
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 43
+
+\WM44. Here we call the subroutine \\{hzns} to find the horizons and \\{dlthx}
+to find \\{dh}.
+
+\WY\WP\4\4\WX44:Horizons and \WCD{ \\{dh}} from \WCD{ \\{pfl}}\X \X${}\WS{}$\7
+\&{call} \\{hzns}\WIN1{47}(\\{pfl})\6
+\&{do} ${}\|j=\WO{1},\39\WO{2}$\1\6
+${}\\{xl}(\|j)=\@{min}(\WO{15.}\ast\\{hg}(\|j),\39\WO{0.1}\ast\\{dl}(\|j))$\2\6
+\&{enddo}\6
+${}\\{xl}(\WO{2})=\\{dist}-\\{xl}(\WO{2})$\6
+${}\\{dh}=\\{dlthx}\WIN1{48}(\\{pfl},\39\\{xl}(\WO{1}),\39\\{xl}(\WO{2})){}$\WY%
+\par
+\WU section~43.\fi % End of module 44
+
+\WM45. If the path is line-of-sight, we still need to know where the horizons
+might have been, and so we turn to techniques used in the area prediction
+mode.
+
+\WY\WP\4\4\WX45:Redo line-of-sight horizons\X \X${}\WS{}$\7
+\&{call} ${}\\{zlsq1}\WIN1{53}(\\{pfl},\39\\{xl}(\WO{1}),\39\\{xl}(\WO{2}),\39%
+\\{za},\39\\{zb})$\6
+${}\\{he}(\WO{1})=\\{hg}(\WO{1})+\@{dim}(\\{pfl}(\WO{3}),\39\\{za})$\6
+${}\\{he}(\WO{2})=\\{hg}(\WO{2})+\@{dim}(\\{pfl}(\\{np}+\WO{3}),\39\\{zb})$\6
+\&{do} ${}\|j=\WO{1},\39\WO{2}$\1\6
+${}\\{dl}(\|j)=\@{sqrt}(\WO{2.}\ast\\{he}(\|j)/\\{gme})\ast\@{exp}({-}\WO{0.07}%
+\ast\@{sqrt}(\\{dh}/\@{max}(\\{he}(\|j),\39\WO{5.})))$\2\6
+\&{enddo}\6
+${}\|q=\\{dl}(\WO{1})+\\{dl}(\WO{2})$\6
+${}\&{if}\,(\|q\WL\\{dist})$ \&{then}\1\6
+${}\|q=(\\{dist}/\|q)\EE{\WO{2}}$\6
+\&{do} ${}\|j=\WO{1},\39\WO{2}$\1\6
+${}\\{he}(\|j)=\\{he}(\|j)\ast\|q$\6
+${}\\{dl}(\|j)=\@{sqrt}(\WO{2.}\ast\\{he}(\|j)/\\{gme})\ast\@{exp}({-}\WO{0.07}%
+\ast\@{sqrt}(\\{dh}/\@{max}(\\{he}(\|j),\39\WO{5.})))$\2\6
+\&{enddo}\2\6
+\&{endif}\6
+\&{do} ${}\|j=\WO{1},\39\WO{2}$\1\6
+${}\|q=\@{sqrt}(\WO{2.}\ast\\{he}(\|j)/\\{gme})$\6
+${}\\{the}(\|j)=(\WO{0.65}\ast\\{dh}\ast(\|q/\\{dl}(\|j)-\WO{1.})-\WO{2.}\ast%
+\\{he}(\|j))/\|q$\2\6
+\&{enddo}\WY\par
+\WU section~43.\fi % End of module 45
+
+\WM46.
+\WY\WP\4\4\WX46:Transhorizon effective heights\X \X${}\WS{}$\7
+\&{call} ${}\\{zlsq1}\WIN1{53}(\\{pfl},\39\\{xl}(\WO{1}),\39\WO{0.9}\ast\\{dl}(%
+\WO{1}),\39\\{za},\39\|q)$\6
+\&{call} ${}\\{zlsq1}\WIN1{53}(\\{pfl},\39\\{dist}-\WO{0.9}\ast\\{dl}(\WO{2}),%
+\39\\{xl}(\WO{2}),\39\|q,\39\\{zb})$\6
+${}\\{he}(\WO{1})=\\{hg}(\WO{1})+\@{dim}(\\{pfl}(\WO{3}),\39\\{za})$\6
+${}\\{he}(\WO{2})=\\{hg}(\WO{2})+\@{dim}(\\{pfl}(\\{np}+\WO{3}),\39\\{zb}){}$%
+\WY\par
+\WU section~43.\fi % End of module 46
+
+\WM47. Here we use the terrain profile \\{pfl} to find the two horizons.
+Output
+consists of the horizon distances \\{dl} and the horizon take-off angles
+\\{the}.  If the path is line-of-sight, the routine sets both horizon
+distances equal to \\{dist}.
+
+\WY\WP\WMd$\\{End\_hz}\WIN2{0}$\5
+\NC $\WO{0}{}$\par
+\WY\WP \&{subroutine} \1\\{hzns}\WIN1{0}(\\{pfl})\2\1\6
+\&{dimension} \1\\{pfl}${}(\ast)$\2\7
+\WX2:Primary parameters\X \X\7
+\&{logical} \1\\{wq}\2\7
+${}\\{np}=\\{pfl}(\WO{1})$\6
+${}\\{xi}=\\{pfl}(\WO{2})$\6
+${}\\{za}=\\{pfl}(\WO{3})+\\{hg}(\WO{1})$\6
+${}\\{zb}=\\{pfl}(\\{np}+\WO{3})+\\{hg}(\WO{2})$\6
+${}\\{qc}=\WO{0.5}\ast\\{gme}$\6
+${}\|q=\\{qc}\ast\\{dist}$\6
+${}\\{the}(\WO{2})=(\\{zb}-\\{za})/\\{dist}$\6
+${}\\{the}(\WO{1})=\\{the}(\WO{2})-\|q$\6
+${}\\{the}(\WO{2})={-}\\{the}(\WO{2})-\|q$\6
+${}\\{dl}(\WO{1})=\\{dist}$\6
+${}\\{dl}(\WO{2})=\\{dist}$\6
+${}\&{if}\,(\\{np}<\WO{2})$\5
+\&{go} \&{to} \\{End\_hz}\WIN2{0}\6
+${}\\{sa}=\WO{0.}$\6
+${}\\{sb}=\\{dist}$\6
+${}\\{wq}=\TRUE$\6
+\&{do} ${}\|i=\WO{2},\39\\{np}$\1\6
+${}\\{sa}=\\{sa}+\\{xi}$\6
+${}\\{sb}=\\{sb}-\\{xi}$\6
+${}\|q=\\{pfl}(\|i+\WO{2})-(\\{qc}\ast\\{sa}+\\{the}(\WO{1}))\ast\\{sa}-\\{za}$%
+\6
+${}\&{if}\,(\|q>\WO{0.})$ \&{then}\1\6
+${}\\{the}(\WO{1})=\\{the}(\WO{1})+\|q/\\{sa}$\6
+${}\\{dl}(\WO{1})=\\{sa}$\6
+${}\\{wq}=\FALSE$\2\6
+\&{endif}\6
+${}\&{if}\,(\WR\\{wq})$ \&{then}\1\6
+${}\|q=\\{pfl}(\|i+\WO{2})-(\\{qc}\ast\\{sb}+\\{the}(\WO{2}))\ast\\{sb}-\\{zb}$%
+\6
+${}\&{if}\,(\|q>\WO{0.})$ \&{then}\1\6
+${}\\{the}(\WO{2})=\\{the}(\WO{2})+\|q/\\{sb}$\6
+${}\\{dl}(\WO{2})=\\{sb}$\2\6
+\&{endif}\2\6
+\&{endif}\2\6
+\&{enddo}\7
+\llap{\\{End\_hz}\WIN2{0}\Colon\  }\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 47
+
+\WM48. Using the terrain profile \\{pfl} we find $\Delta h$, the interdecile
+range
+of elevations between the two points \\{x1} and \\{x2}.
+
+\WY\WP\WMd$\\{End\_dh}\WIN2{0}$\5
+\NC $\WO{0}{}$\par
+\WP\WMd$\\{Reduce}\WIN2{0}$\5
+\NC $\WO{0}{}$\WY\par
+\WY\WP \&{function} \1\\{dlthx}\WIN1{0}(\\{pfl},\39\\{x1},\39\\{x2})\2\1\6
+\&{dimension} \1\\{pfl}${}(\ast)$\2\7
+\&{dimension} \1\|s${}(\WO{247})$\2\7
+${}\\{np}=\\{pfl}(\WO{1})$\6
+${}\\{xa}=\\{x1}/\\{pfl}(\WO{2})$\6
+${}\\{xb}=\\{x2}/\\{pfl}(\WO{2})$\6
+${}\\{dlthx}\WIN1{0}=\WO{0.}$\6
+${}\&{if}\,(\\{xb}-\\{xa}<\WO{2.})$\5
+\&{go} \&{to} \\{End\_dh}\WIN2{0}\6
+${}\\{ka}=\WO{0.1}\ast(\\{xb}-\\{xa}+\WO{8.})$\6
+${}\\{ka}=\@{min0}(\@{max0}(\WO{4},\39\\{ka}),\39\WO{25})$\6
+${}\|n=\WO{10}\ast\\{ka}-\WO{5}$\6
+${}\\{kb}=\|n-\\{ka}+\WO{1}$\6
+${}\\{sn}=\|n-\WO{1}$\6
+${}\|s(\WO{1})=\\{sn}$\6
+${}\|s(\WO{2})=\WO{1.}$\6
+${}\\{xb}=(\\{xb}-\\{xa})/\\{sn}$\6
+${}\|k=\\{xa}+\WO{1.}$\6
+${}\\{xa}=\\{xa}-\@{float}(\|k)$\6
+\&{do} ${}\|j=\WO{1},\39\|n$\1\6
+\llap{\\{Reduce}\WIN2{0}\Colon\  }${}\&{if}\,(\\{xa}>\WO{0.}\WW\|k<\\{np})$ %
+\&{then}\1\6
+${}\\{xa}=\\{xa}-\WO{1.}$\6
+${}\|k=\|k+\WO{1}$\6
+\&{go} \&{to} \\{Reduce}\WIN2{0}\2\6
+\&{endif}\6
+${}\|s(\|j+\WO{2})=\\{pfl}(\|k+\WO{3})+(\\{pfl}(\|k+\WO{3})-\\{pfl}(\|k+%
+\WO{2}))\ast\\{xa}$\6
+${}\\{xa}=\\{xa}+\\{xb}$\2\6
+\&{enddo}\6
+\&{call} ${}\\{zlsq1}\WIN1{53}(\|s,\39\WO{0.},\39\\{sn},\39\\{xa},\39\\{xb})$\6
+${}\\{xb}=(\\{xb}-\\{xa})/\\{sn}$\6
+\&{do} ${}\|j=\WO{1},\39\|n$\1\6
+${}\|s(\|j+\WO{2})=\|s(\|j+\WO{2})-\\{xa}$\6
+${}\\{xa}=\\{xa}+\\{xb}$\2\6
+\&{enddo}\7
+${}\\{dlthx}\WIN1{0}=\\{qtile}\WIN1{52}(\|n,\39\|s(\WO{3}),\39\\{ka})-\\{qtile}%
+\WIN1{52}(\|n,\39\|s(\WO{3}),\39\\{kb})$\6
+${}\\{dlthx}\WIN1{0}=\\{dlthx}\WIN1{0}/(\WO{1.}-\WO{0.8}\ast\@{exp}({-}(\\{x2}-%
+\\{x1})/\WO{50\^E3})){}$\7
+\llap{\\{End\_dh}\WIN2{0}\Colon\  }\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 48
+
+\WN49.  Miscellaneous Aids.
+
+\fi % End of module 49
+
+\WM50. The standard normal complementary probability---the function $Q(x)=
+1/\sqrt{2\pi}\int_x^\infty e^{-t^2/2}dt$.  The approximation is due
+to C. Hastings, Jr. (``Approximations for digital computers,'' Princeton
+Univ. Press, 1955) and the maximum error should be $7.5\times10^{-8}$.
+\WY\WP \&{function} \1\\{qerf}\WIN1{0}(\|z)\2\7
+\&{data}  \1\\{b1}, \\{b2}, \\{b3}, \\{b4}, \\{b5}${}{/}\WO{0.319381530},\39{-}%
+\WO{0.356563782},\39\WO{1.781477937},\39{-}\WO{1.821255987},\39%
+\WO{1.330274429}{/}$\2\6
+\&{data}  \1\\{rp}, \\{rrt2pi}${}{/}\WO{4.317008},\39\WO{0.398942280}{/}$\2\1\7
+${}\|x=\|z$\6
+${}\|t=\@{abs}(\|x)$\6
+${}\&{if}\,(\|t<\WO{10.})$\5
+\&{go} \&{to} ${}\WO{1}$\6
+${}\\{qerf}\WIN1{0}=\WO{0.}$\6
+\&{go} \&{to} ${}\WO{2}$\6
+\llap{\WO{1}\Colon\  }${}\|t=\\{rp}/(\|t+\\{rp})$\6
+${}\\{qerf}\WIN1{0}=\@{exp}({-}\WO{0.5}\ast\|x\EE{\WO{2}})\ast\\{rrt2pi}%
+\ast((((\\{b5}\ast\|t+\\{b4})\ast\|t+\\{b3})\ast\|t+\\{b2})\ast\|t+\\{b1})\ast%
+\|t$\6
+\llap{\WO{2}\Colon\  }${}\&{if}\,(\|x<\WO{0.})$\5
+${}\\{qerf}\WIN1{0}=\WO{1.}-\\{qerf}\WIN1{0}$\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 50
+
+\WM51. The inverse of \\{qerf}---the solution for $x$ to $q=Q(x)$.  The
+approximation is due to C. Hastings, Jr. (``Approximations for digital
+computers,'' Princeton Univ. Press, 1955) and the maximum error should
+be $4.5\times10^{-4}$.
+
+\WY\WP \&{function} \1\\{qerfi}\WIN1{0}(\|q)\2\7
+\&{data}  \1\\{c0}, \\{c1}, \\{c2}${}{/}\WO{2.515516698},\39\WO{0.802853},\39%
+\WO{0.010328}{/}$\2\6
+\&{data}  \1\\{d1}, \\{d2}, \\{d3}${}{/}\WO{1.432788},\39\WO{0.189269},\39%
+\WO{0.001308}{/}$\2\1\7
+${}\|x=\WO{0.5}-\|q$\6
+${}\|t=\@{amax1}(\WO{0.5}-\@{abs}(\|x),\39\WO{0.000001})$\6
+${}\|t=\@{sqrt}({-}\WO{2.}\ast\@{alog}(\|t))$\6
+${}\\{qerfi}\WIN1{0}=\|t-((\\{c2}\ast\|t+\\{c1})\ast\|t+\\{c0})/(((\\{d3}\ast%
+\|t+\\{d2})\ast\|t+\\{d1})\ast\|t+\WO{1.})$\6
+${}\&{if}\,(\|x<\WO{0.})$\5
+${}\\{qerfi}\WIN1{0}={-}\\{qerfi}\WIN1{0}$\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 51
+
+\WM52. This routine provides a quantile.  It reorders the array $a$ so that
+$a(j),j=1\ldots i_r$ are all greater that or equal to all $a(i),i=i_r\ldots
+nn$.
+In particular, $a(i_r)$ will have the same value it would have if $a$ were
+completely sorted in descending order.  The returned value is ${\it qtile}=
+a(i_r)$.
+
+\WY\WP\WMd$\\{Qt0}\WIN2{0}$\5
+\NC $\WO{0}{}$\par
+\WP\WMd$\\{Qt1}\WIN2{0}$\5
+\NC $\WO{0}{}$\par
+\WP\WMd$\\{Qt2}\WIN2{0}$\5
+\NC $\WO{0}{}$\par
+\WP\WMd$\\{Qt3}\WIN2{0}$\5
+\NC $\WO{0}{}$\WY\par
+\WY\WP \&{function} \1\\{qtile}\WIN1{0}(\\{nn},\39\|a,\39\\{ir})\2\1\6
+\&{dimension} \1\|a(\\{nn})\2\7
+${}\|m=\WO{1}$\6
+${}\|n=\\{nn}$\6
+${}\|k=\@{min}(\@{max}(\WO{1},\39\\{ir}),\39\|n)$\6
+\llap{\\{Qt0}\WIN2{0}\Colon\  }\&{continue}\6
+${}\|q=\|a(\|k)$\6
+${}\\{i0}=\|m$\6
+${}\\{j1}=\|n$\6
+\llap{\\{Qt1}\WIN2{0}\Colon\  }\&{continue}\6
+\&{do} ${}\|i=\\{i0},\39\|n$\1\6
+${}\&{if}\,(\|a(\|i)<\|q)$\5
+\&{go} \&{to} \\{Qt2}\WIN2{0}\2\6
+\&{enddo}\6
+${}\|i=\|n$\6
+\llap{\\{Qt2}\WIN2{0}\Colon\  }\&{do} ${}\|j=\\{j1},\39\|m,\39{-}\WO{1}$\1\6
+${}\&{if}\,(\|a(\|j)>\|q)$\5
+\&{go} \&{to} \\{Qt3}\WIN2{0}\2\6
+\&{enddo}\6
+${}\|j=\|m$\6
+\llap{\\{Qt3}\WIN2{0}\Colon\  }${}\&{if}\,(\|i<\|j)$ \&{then}\1\6
+${}\|r=\|a(\|i)$\6
+${}\|a(\|i)=\|a(\|j)$\6
+${}\|a(\|j)=\|r$\6
+${}\\{i0}=\|i+\WO{1}$\6
+${}\\{j1}=\|j-\WO{1}$\6
+\&{go} \&{to} \\{Qt1}\WIN2{0}\2\6
+\&{else} \&{if}$\,(\|i<\|k)$ \&{then}\1\6
+${}\|a(\|k)=\|a(\|i)$\6
+${}\|a(\|i)=\|q$\6
+${}\|m=\|i+\WO{1}$\6
+\&{go} \&{to} \\{Qt0}\WIN2{0}\2\6
+\&{else} \&{if}$\,(\|j>\|k)$ \&{then}\1\6
+${}\|a(\|k)=\|a(\|j)$\6
+${}\|a(\|j)=\|q$\6
+${}\|n=\|j-\WO{1}$\6
+\&{go} \&{to} \\{Qt0}\WIN2{0}\2\6
+\&{endif}\6
+${}\\{qtile}\WIN1{0}=\|q$\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 52
+
+\WM53. A linear least squares fit between $x_1$, $x_2$ to the function
+described
+by the array $z$.  This array must have a special format: $z(1)=en$, the
+number of equally large intervals, $z(2)=\xi$, the interval length, and
+$z(j+3),j=0,\ldots,n$, function values.  The output consists of values of
+the required line, $z_0$ at 0, $z_n$ at $x_t=n\xi$.
+\WY\WP \&{subroutine} \1\\{zlsq1}\WIN1{0}(\|z,\39\\{x1},\39\\{x2},\39\\{z0},\39%
+\\{zn})\2\1\6
+\&{dimension} \1\|z${}(\ast)$\2\7
+${}\\{xn}=\|z(\WO{1})$\6
+${}\\{xa}=\@{aint}(\@{dim}(\\{x1}/\|z(\WO{2}),\39\WO{0.}))$\6
+${}\\{xb}=\\{xn}-\@{aint}(\@{dim}(\\{xn},\39\\{x2}/\|z(\WO{2})))$\6
+${}\&{if}\,(\\{xb}\WL\\{xa})$ \&{then}\1\6
+${}\\{xa}=\@{dim}(\\{xa},\39\WO{1.})$\6
+${}\\{xb}=\\{xn}-\@{dim}(\\{xn},\39\\{xb}+\WO{1.})$\2\6
+\&{endif}\6
+${}\\{ja}=\\{xa}$\6
+${}\\{jb}=\\{xb}$\6
+${}\|n=\\{jb}-\\{ja}$\6
+${}\\{xa}=\\{xb}-\\{xa}$\6
+${}\|x={-}\WO{0.5}\ast\\{xa}$\6
+${}\\{xb}=\\{xb}+\|x$\6
+${}\|a=\WO{0.5}\ast(\|z(\\{ja}+\WO{3})+\|z(\\{jb}+\WO{3}))$\6
+${}\|b=\WO{0.5}\ast(\|z(\\{ja}+\WO{3})-\|z(\\{jb}+\WO{3}))\ast\|x$\6
+\&{do} ${}\|i=\WO{2},\39\|n$\1\6
+${}\\{ja}=\\{ja}+\WO{1}$\6
+${}\|x=\|x+\WO{1.}$\6
+${}\|a=\|a+\|z(\\{ja}+\WO{3})$\6
+${}\|b=\|b+\|z(\\{ja}+\WO{3})\ast\|x$\2\6
+\&{enddo}\6
+${}\|a=\|a/\\{xa}$\6
+${}\|b=\|b\ast\WO{12.}/((\\{xa}\ast\\{xa}+\WO{2.})\ast\\{xa})$\6
+${}\\{z0}=\|a-\|b\ast\\{xb}$\6
+${}\\{zn}=\|a+\|b\ast(\\{xn}-\\{xb})$\6
+\&{return}\2\6
+\&{end}\WY\par
+\fi % End of module 53
+
+\WN54.  Index.
+\fi % End of module 54
+
+\input itm.ndx
+\input itm.mds
+
+\Winfo{"C:\\FOR5\\PMOD\\XITM\\WITM\\FWEAVE.EXE itm"}  {"itm.web"} {(none)}
+ {FORTRAN}
+
+\Wcon

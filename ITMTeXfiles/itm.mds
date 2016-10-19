@@ -1,0 +1,66 @@
+\Wmods
+\:\WX8:Check distance\X \X
+\WU section~5.
+\:\WX7:Check parameter ranges\X \X
+\WU section~5.
+\:\WX32:Climatic coefficients\X \X
+\WU section~31.
+\:\WX29:Climatic constants\X \X
+\WU section~28.
+\:\WX12:Compute diffraction attenuation\X \X
+\WU section~10.
+\:\WX19:Compute line-of-sight attenuation\X \X
+\WU section~17.
+\:\WX24:Compute scatter attenuation\X \X
+\WU section~22.
+\:\WX37:Correct normal deviates\X \X
+\WU section~28.
+\:\WX9:Diffraction coefficients\X \X
+\WU section~5.
+\:\WX36:Distance coefficients\X \X
+\WU section~31.
+\:\WX6:Do secondary parameters\X \X
+\WU section~5.
+\:\WX34:Frequency coefficients\X \X
+\WU section~31.
+\:\WX30:Function \WCD{ \\{curv}}\X \X
+\WU section~28.
+\:\WX44:Horizons and \WCD{ \\{dh}} from \WCD{ \\{pfl}}\X \X
+\WU section~43.
+\:\WX5:LRprop\X \X
+\WU section~4.
+\:\WX15:Line-of-sight calculations\X \X
+\WU section~5.
+\:\WX16:Line-of-sight coefficients\X \X
+\WU section~15.
+\:\WX33:Mode of variability coefficients\X \X
+\WU section~31.
+\:\WX11:Prepare initial diffraction constants\X \X
+\WU section~10.
+\:\WX18:Prepare initial line-of-sight constants\X \X
+\WU section~17.
+\:\WX23:Prepare initial scatter constants\X \X
+\WU section~22.
+\:\WX2:Primary parameters\X \X
+\WU sections~4, 10, 17, 22, 28, 41, 42, 43, and~47.
+\:\WX45:Redo line-of-sight horizons\X \X
+\WU section~43.
+\:\WX39:Resolve deviations \WCD{ \\{yr}}, \WCD{ \\{yc}}\X \X
+\WU section~28.
+\:\WX38:Resolve standard deviations\X \X
+\WU section~28.
+\:\WX3:Secondary parameters\X \X
+\WU sections~4, 10, 17, and~22.
+\:\WX31:Set up variability coefficients\X \X
+\WU section~28.
+\:\WX35:System coefficients\X \X
+\WU section~31.
+\:\WX46:Transhorizon effective heights\X \X
+\WU section~43.
+\:\WX20:Troposcatter calculations\X \X
+\WU section~5.
+\:\WX21:Troposcatter coefficients\X \X
+\WU section~20.
+\:\WX27:Variability parameters\X \X
+\WU sections~28, 42, and~43.
+
