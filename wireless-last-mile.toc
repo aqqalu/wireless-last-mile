@@ -1,0 +1,67 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\defcounter {refsection}{0}\relax 
+\select@language {danish}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {1}Fremgangsm\IeC {\r a}de i projektet}{2}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.1}Projektets m\IeC {\r a}ls\IeC {\ae }tning}{2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.1.1}Form\IeC {\r a}lsbeskrivelsen}{3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.1.2}Projektets leverancer}{3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.1.3}Projektets succeskriterier}{3}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.2}Interessentanalyse for projektet}{4}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.2.1}Liste over interessenter}{4}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.3}Gr\IeC {\o }nland}{6}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.3.1}Fakta om Gr\IeC {\o }nland}{6}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.3.2}Infrastruktur af telekommunikation}{7}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.3.3}Kapacitet}{8}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.3.4}Services}{8}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.3.5}Dataforbrug}{8}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.3.6}Busy hour}{8}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.3.7}Prognose}{8}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {2}Tabs-konceptet}{10}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.1}ITU-R's koncept for tab over radio-forbindelser}{10}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1.1}Systemtabet}{10}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1.2}Transmissionstabet}{11}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1.3}Basistabet og antenneforst\IeC {\ae }rkningen}{11}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.2}Longley-Rice's computer metode}{12}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.2.1}Input til den ITM modellen}{13}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.2.2}Input til den ITM modellen}{13}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{Radiob\IeC {\o }lgens udbredelse ($d$)}{13}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{Antennens h\IeC {\o }jde over jorden ($h_g$)}{13}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{Radiosignalets centerfrekvens m\IeC {\r a}lt i radianer ($k$)}{13}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{Luftens brydningsindex ($N$)}{14}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{Jordens effektive radius ($a$) og krumning ($\gamma _e$)}{14}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.2.3}Den glatte kurve gennem terr\IeC {\ae }net}{15}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsubsection}{Matematisk beskrivelse af terr\IeC {\ae }net ($\Delta h(d)$)}{15}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {A}Bilag}{17}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {A.1}Telesites}{17}

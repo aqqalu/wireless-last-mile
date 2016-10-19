@@ -84,7 +84,8 @@ Hvor:\\
 \end{tabbing}
 Fra 2017 til 2022 vil Busy-hour trafikken se således ud, se tabel\ref{tab:prognose}:
 \begin{table}[!h]
-    \begin{tabular}{|l|l|}
+	\centering
+    \begin{tabular}{|c|c|}
     \hline
     År   & Busy-hour i Pbps \\ \hline
     2017 & 1,04             \\ \hline
@@ -97,5 +98,56 @@ Fra 2017 til 2022 vil Busy-hour trafikken se således ud, se tabel\ref{tab:progn
     \label{tab:prognose}
     \caption{Busy-hour trafik prognose fra 2017 til 2022}
 \end{table}
-
-
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{figure/busyHourPrognose.pdf}
+	\caption{Busy-hour trafik prognose fra 2017 til 2022}
+	\label{fig:prognose}
+\end{figure}
+Nu hvor Busy-hour trafik prognosen er beregnet, kan Busy-hour trafik pr. individ beregnes ud fra prognosen for den globale befolkningstal. Dermed kan prognosen for Busy-hour trafik i grønland beregnes.\\
+Prognosen for den globale befolkningstal kan ses i tabel \ref{tab:globalBefolkning}
+\begin{table}
+	\centering
+    \begin{tabular}{|c|c|c|}
+    \hline
+    År   & Globalt befolkningstal & Busy-hour trafik pr. individ i kpbs \\ \hline
+    2017 & 7515284,153            & 139                          \\ \hline
+    2018 & 7597175,534            & 175                          \\ \hline
+    2019 & 7678174,656            & 221                          \\ \hline
+    2020 & 7758156,792            & 280                          \\ \hline
+    2021 & 7837028,569            & 354                          \\ \hline
+    2022 & 7914763,610            & 448                          \\ \hline
+    \end{tabular}
+    \caption{Prognose for globalt befolkningstal}
+    \label{tab:globalBefolkning}
+\end{table}
+Tal fra Grønlandsk statistik, som viser befolkningstallet for hele Grønland de seneste 5 år (2011 til 2016) kan ses i tabel \ref{tab:grlBefolkning}, her kan prognoses også ses. Tallene er beregnet ud fra gennemsnitstallet gemmen de seneste 5 år, og addere tallet hver år der går, frem til 2022.
+\begin{table}
+	\centering
+    \begin{tabular}{|l|l|l|l|l|l|l|l|}
+    \hline
+    År        & 2012   & 2013   & 2014   & 2015   & 2016   & ~      & $\Delta$ \\ \hline
+    Statistik & 56.749 & 56.370 & 56.282 & 55.984 & 55.846 & ~      & -154                \\ \hline
+    År        & 2017   & 2018   & 2019   & 2020   & 2021   & 2022   & ~                   \\ \hline
+    Prognose  & 55.692 & 55.538 & 55.385 & 55.231 & 55.077 & 54.923 & ~                   \\ \hline
+    \end{tabular}
+    \caption{Befolkningstal de seneste 5 år, og prognose frem til 2022}
+    \label{tab:grlBefolkning}
+\end{table}
+Prognosen for den globale Busy-hour trafik pr. individ og prognoses for befolkningstallet i Grønland frem til 2022 er beregnet. Nu kan prognosen for kapacitetsbehovet i Grønland frem til 2022 findes, det findes ved at multiplicere de to tal. Prognosen kan ses i tabel \ref{tab:kapacitetPrognose}.
+\begin{table}
+	\centering
+    \begin{tabular}{|c|c|c|c|c|c|c|}
+    \hline
+    År                 & 2017      & 2018      & 2019       & 2020       & 2021       & 2022       \\ \hline
+    Kapacitetsprognose & 7.721.583 & 9.729.586 & 12.262.526 & 15.458.505 & 19.492.132 & 24.584.091 \\ \hline
+    \end{tabular}
+    \caption{Kapacitetsbehov frem til 2022 i Grønland}
+    \label{tab:kapacitetPrognose}
+\end{table}
+\begin{figure}
+	\centering
+	\includegraphics[width=1\textwidth]{figure/kapacitetsbehov.pdf}
+	\caption{Kapacitetsbehov frem til 2022 i Grønland}
+	\label{fig:kapacitetsbehov}
+\end{figure}
