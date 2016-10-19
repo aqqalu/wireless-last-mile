@@ -55,7 +55,7 @@ I de seneste år, viser tallene, at både den mobile bredbånd- og mobiltelefona
 Busy hour er en periode som navnet siger, en periode på 1 time hvor data trafikken er på sin højeste inden for 24 timer. Ifølge den amerikanske multinationale firma Cisco har den globale nettrafik øget med 34 procent i 2014. Cisco forudsiger at den globale busy-hour trafik til øges med en faktor på 3,4 fra 2014 til 2019, dvs. den globale busy-hour trafik vil nå 1,7 Pbps (petabits per second) i år 2019\cite{busy-hour}.\\
 Ud fra de oplysninger har Tele Greenland lavet et prognose over hvor meget befolkningen i Grønland kommer til at bruge i busy-hour perioden. I den næste underafsnit vil prognosen blive beskrevet og forklaret.
 
-\subsection{Prognose}
+\subsection{Prognose}\label{sec:prognose}
 I takt med at flere benytter sig af den mobile bredbånd- og mobiltelefonabonnenter, stiger også kapacitetsbehovet for brugerne og kommunikationsnetværket i Grønland.\\
 Tele Greenland har udarbejdet en prognose over kapacitetsbehovet over tid (fra 2017 til 2022) og sted i Grønland.\\
 \textit{Bemærk, at udregningerne er regnet ved at antage, at den grønlandske befolkning har det samme busy-hour trafik pr. individ.}.\\
@@ -150,4 +150,17 @@ Prognosen for den globale Busy-hour trafik pr. individ og prognoses for befolkni
 	\includegraphics[width=1\textwidth]{figure/kapacitetsbehov.pdf}
 	\caption{Kapacitetsbehov frem til 2022 i Grønland}
 	\label{fig:kapacitetsbehov}
+\end{figure}
+
+\section{Valg af bygd}
+I de tidligere afsnit, blev der forslaget, at valget af bygd skal tages ud fra tjenester og topografiske forhold. Dvs. at den valgte bygd skal have alle tjenester repræsenteret og den topografiske forhold er en udfordring.\\
+Bygden som er velegnet til for en study-case er bygden \textit{Kullorsuaq}. Kullorsuaq er en af de mange bygder som er i Qaasuitsup Kommunea i den nordlige del af Grønland. Indbyggertallet er 453 i 2016\cite{grlStatBefolkning} De seneste 5 år, har indbygger tallet steget i gennemsnit med 8, hvor imod befolkningstallet i de fleste bygder er faldende.\\
+Kullorsuaq er placeret i den grønne zone, dvs. at kommunikationen udadtil sker ved satellit kommunikation. Satellit jordstationen (SAHO) i nordgrønland som Kullorsuaq er forbundet med er placeret syd for Upernavik (se kort oversigtet her:\ref{bilag:telesites}. Linket mellem SAHO frem til Kullorsuaq er forbundet med 4 repeaterstationer (Tunullersuaq (TUAQ), Tugtorqortoq (TUGT), Tinumanersuaq (TINU) og Kiatarsuaq (HOLM)).\\
+
+Udregning af trafikprognose er det samme som i afsnit \ref{sec:prognose}.
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=1\textwidth]{figure/kapBehovKullorsuaq.pdf}
+	\caption{Kapacitetsbehov frem til 2022 i bygden Kullorsuaq}
+	\label{fig:kapBehovKullorsuaq}
 \end{figure}
